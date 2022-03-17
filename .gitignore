@@ -1,0 +1,8 @@
+.idea/
+*__pycache__/
+*.pyc
+zappa_settings.json
+error.log
+venv/
+test.py
+*.pytest_cashe
