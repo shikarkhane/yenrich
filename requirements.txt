@@ -1,0 +1,14 @@
+## We are using these requirements directly:
+git+https://github.com/shikarkhane/yZappa.git@master#egg=zappa
+boto3
+click
+Flask
+Flask-Cors
+Flask-SQLAlchemy
+marshmallow
+mysql-connector-python
+feedparser
+requests
+werkzeug
+pytz
+zeep

@@ -15,11 +15,12 @@ class OngoingApi:
     def __init__(self, username, password, warehouse, goods_owner_id):
         self.username = username
         self.password = password
-        self.base_url = 'https://api.ongoingsystems.se/{0}/api/v1/'.format(warehouse)
+        self.base_url = 'https://api.ongoingsystems.se/{0}/api/v1'.format(warehouse)
         self.goods_owner_id = goods_owner_id
         self.headers = {
             "Content-type": "application/json",
-            "Authorization": "Basic {0}".format(base64.b64encode(username + ":" + password))
+            "Authorization":
+                "Basic {0}".format((base64.b64encode(f"{username}:{password}".encode('utf-8'))).decode('utf-8'))
         }
         self._returned_orders_since = f"{self.base_url}/orders"
 
@@ -61,7 +62,8 @@ def get_returned_orders(from_date) -> List[Order]:
     response = o.get_orders_returned_since(from_date)
     if is_successful(response):
         orders = [i.get("orderInfo") for i in response.json()]
-        for order in orders:
+        for i in response.json():
+            order = i.get("orderInfo")
             order_lines: List[OrderDetail] = [
                 OrderDetail(
                     order_line.get("rowNumber"),
@@ -72,7 +74,7 @@ def get_returned_orders(from_date) -> List[Order]:
                     order_line.get("pickedArticleItems")[0].get("returnDate"),
                     order_line.get("pickedArticleItems")[0].get("returnCause")
                     )
-                for order_line in order.get("orderLines")]
+                for order_line in i.get("orderLines")]
 
             returned_orders.append(
                 Order(

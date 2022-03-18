@@ -3,7 +3,7 @@ import os
 
 import boto3
 import click
-from authlib.integrations.flask_client import OAuth
+
 from flask import Flask
 from flask.cli import with_appcontext
 from flask_cors import CORS
@@ -18,7 +18,7 @@ logging.basicConfig(filename="error.log", level=logging.INFO, format='%(asctime)
 logger = logging.getLogger()
 
 db: SQLAlchemy = SQLAlchemy()
-oauth: OAuth = OAuth()
+
 sqs = boto3.client('sqs', region_name='eu-west-1')
 sns = boto3.client('sns', region_name='eu-west-1')
 s3 = boto3.client('s3', region_name='eu-west-1')
@@ -54,7 +54,6 @@ def create_app(test_config=None):
 
     # initialize Flask-SQLAlchemy and the init-db command
     db.init_app(app)
-    oauth.init_app(app)
     app.cli.add_command(init_db_command)
 
     # apply the blueprints to the app
@@ -120,7 +119,6 @@ def create_app_for_triggered_event(test_config=None):
     # initialize Flask-SQLAlchemy and the init-db command
     close_all_sessions()
     db.init_app(app)
-    oauth.init_app(app)
 
     return app
 
