@@ -28,7 +28,7 @@ class OngoingApi:
         self._orders = f"{self.base_url}/orders"
         self._return_order = f"{self.base_url}/returnOrders"
 
-    def get_orders_returned_since(self, from_date):
+    def get_outgoing_orders_returned_since(self, from_date):
         params = {
             "goodsOwnerId": self.goods_owner_id,
             "lastReturnedFrom": from_date
@@ -135,7 +135,7 @@ class Account:
     def get_returned_outgoing_orders(self, from_date) -> List[Inspection]:
         raw_orders: List[Inspection] = []
         o = self.ongoing_api
-        response = o.get_orders_returned_since(from_date)
+        response = o.get_outgoing_orders_returned_since(from_date)
         if is_successful(response):
             for i in response.json():
                 order = i.get("orderInfo")
@@ -165,20 +165,26 @@ class Account:
         return raw_orders
 
 
+def return_request_queue_listener():
+    push_to_ongoing()
+
+
 def push_to_ongoing():
     # this function will do the following
-    # 1. listen to a queue for new yayloh return requests
-    # 2. get "ongoing order" object for a yayloh return request
-    # 3. create an "ongoing return order"
+    # 1. get "ongoing order" object for a yayloh return request
+    # get_order_by_goods_owner_order_id
+    # 2. create an "ongoing return order"
+    # create_return_order
     pass
 
 
 def consume_webhook():
+    update_inspection_status()
+
+
+def update_inspection_status():
     # this function will do the following
-    # 1. listen to ongoing webhook queue
-    # 2. get "ongoing order" and corresponding yayloh order object
-    # 3. get "return order status from ongoing"
-    # 4. Call yayloh to update inspection status
+    # 1. get "ongoing order" and corresponding yayloh order object
+    # 2. get "return order status from ongoing"
+    # 3. Call yayloh to update inspection status
     pass
-
-
