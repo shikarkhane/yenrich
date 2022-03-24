@@ -35,7 +35,7 @@ class OngoingApi:
         }
         return self._make_request("get", self._orders, params=params)
 
-    def get_order_between_dates(self, from_date, to_date):
+    def get_outgoing_order_between_dates(self, from_date, to_date):
         params = {
             "goodsOwnerId": self.goods_owner_id,
             "orderCreatedTimeFrom": from_date,
@@ -52,7 +52,7 @@ class OngoingApi:
         from_date = order_date - datetime.timedelta(minutes=5)
         to_date = order_date + datetime.timedelta(minutes=5)
 
-        response = self.get_order_between_dates(from_date, to_date)
+        response = self.get_outgoing_order_between_dates(from_date, to_date)
         if is_successful(response):
             for i in response.json():
                 order = i.get("orderInfo")
@@ -80,8 +80,8 @@ class OngoingApi:
                     )
         return None
 
-    def create_return_order(self) -> None:
-        body = {
+    def create_return_order(self):
+        payload = {
                   "goodsOwnerId": self.goods_owner_id,
                   "returnOrderNumber": "string",
                   "customerOrder": {
@@ -97,6 +97,14 @@ class OngoingApi:
                     }
                   ]
                 }
+        return self._make_request("put", self._return_order, payload=payload)
+
+    def get_return_orders(self, return_order_list):
+        params = {
+            "goodsOwnerId": self.goods_owner_id,
+            "customerOrderNumbers": [return_order_list]
+        }
+        return self._make_request("get", self._return_order, params=params)
 
     def _make_request(self, req_type: str, url: str, params: dict = None, payload: dict = None) -> Response:
         response: Response = Response()
@@ -184,7 +192,77 @@ def consume_webhook():
 
 def update_inspection_status():
     # this function will do the following
-    # 1. get "ongoing order" and corresponding yayloh order object
-    # 2. get "return order status from ongoing"
-    # 3. Call yayloh to update inspection status
+    # 1. parse webhook payload
+    # parse_webhook_payload()
+    # 2. get "ongoing return order" and corresponding yayloh order object
+    # get_return_orders
+    # 3. get "return order status from ongoing"
+    # get_ongoing_inspection_statuses
+    # 4. Call yayloh to update inspection status
+    # rplatform dev branch has new endpoint /wms/retailer-id/<int:retailer_id>/order_details/inspected/
+    pass
+
+def parse_webhook_payload():
+    #  we save the order and article info for next steps
+    # sample_payload_schema = {
+    #     "article": {
+    #         "articleSystemId": 999,
+    #         "articleNumber": "10001",
+    #         "barCode": "ABS37"
+    #     },
+    #     "articleItem": {
+    #         "articleItemId": 445560,
+    #         "originalArticleItemId": 445567,
+    #         "serial": "9999",
+    #         "batch": "888",
+    #         "expiryDate": null,
+    #         "numberOfItems": 10.0,
+    #         "location": {
+    #             "location": null,
+    #             "locationId": 9999
+    #         }
+    #     },
+    #     "byComputer": null,
+    #     "byUser": {
+    #         "userId": 34
+    #     },
+    #     "order": null,
+    #     "webhookPickingId": 1,
+    #     "webhookEventId": 12345,
+    #     "system": "FruOlsson",
+    #     "timestamp": "2022-03-23T12:45:40.1619910Z",
+    #     "goodsOwnerId": 96,
+    #     "isAllocated": true,
+    #     "isPicked": true,
+    #     "isPacked": false,
+    #     "isReturned": false,
+    #     "isDeleted": false
+    # }
+
+def get_ongoing_inspection_statuses():
+    # from returnOrders coming from previous steps, consider "Returnerad" status as Warehouse OK
+    # {
+    #     "returnOrderStatuses": [
+    #         {
+    #             "number": 200,
+    #             "text": "Aviserad"
+    #         },
+    #         {
+    #             "number": 300,
+    #             "text": "Inleverans"
+    #         },
+    #         {
+    #             "number": 400,
+    #             "text": "Avvikelse"
+    #         },
+    #         {
+    #             "number": 500,
+    #             "text": "Returnerad"
+    #         },
+    #         {
+    #             "number": 1000,
+    #             "text": "Makulerad"
+    #         }
+    #     ]
+    # }
     pass
