@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import List
 
 # @bp.route("/wms/retailer-id/<int:retailer_id>/order_details/inspected/",
@@ -30,28 +31,17 @@ from typing import List
 #
 
 
+@dataclass
 class InspectionDetail:
-    def __init__(self, ext_internal_order_detail_id, order_detail_id, inspection_result, comment, last_changed):
-        self.ext_internal_order_detail_id = ext_internal_order_detail_id
-        self.order_detail_id = order_detail_id
-        self.inspection_result = inspection_result
-        self.comment = comment
-        self.last_changed = last_changed
-
-    def repr_json(self):
-        return dict(ext_internal_order_detail_id=self.ext_internal_order_detail_id,
-                    order_detail_id=self.order_detail_id,
-                    inspection_result=self.inspection_result, comment=self.comment,
-                    last_changed=self.last_changed)
+    ext_internal_order_detail_id: int
+    order_detail_id: int
+    inspection_result: str
+    comment: str
+    last_changed: str
 
 
+@dataclass
 class Inspection:
-    def __init__(self, ext_order_id, ext_internal_order_id, details: List[InspectionDetail]):
-        self.ext_order_id = ext_order_id
-        self.ext_internal_order_id = ext_internal_order_id
-        self.inspected_order_details = details
-
-    def repr_json(self):
-        return dict(ext_order_id=self.ext_order_id,
-                    ext_internal_order_id=self.ext_internal_order_id,
-                    inspected_order_details=self.inspected_order_details)
+    ext_order_id: int
+    ext_internal_order_id: int
+    inspected_order_details: List[InspectionDetail]
