@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
+
 # @bp.route("/wms/retailer-id/<int:retailer_id>/order_details/inspected/",
 #           methods=("POST",))
 # def update_order_details_after_warehouse_inspection_by_ext_oms_order_id(retailer_id: int):

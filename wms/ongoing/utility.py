@@ -16,8 +16,7 @@ def is_successful(response):
 def trim_it(a):
     if a and isinstance(a, str):
         return a.strip()
-    else:
-        return a
+    return a
 
 
 def remove_hashtag(ext_order_id: str) -> str:

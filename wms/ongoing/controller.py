@@ -1,17 +1,16 @@
 import base64
-import logging
-from requests import Response
-import requests
-from wms import logger
-import os
-from wms.ongoing.utility import is_successful
-from typing import List
-from wms.ongoing.interface import Order, OrderDetail
-from wms.integration.interface import InspectionDetail, Inspection
 import datetime
+import os
+from typing import List
 from typing import Optional
 
-logging.basicConfig(filename='error.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
+import requests
+from requests import Response
+
+from wms import logger
+from wms.integration.interface import InspectionDetail, Inspection
+from wms.ongoing.interface import Order, OrderDetail
+from wms.ongoing.utility import is_successful
 
 
 class OngoingApi:
@@ -203,6 +202,7 @@ def update_inspection_status():
     pass
 
 def parse_webhook_payload():
+    pass
     #  we save the order and article info for next steps
     # sample_payload_schema = {
     #     "article": {
@@ -240,6 +240,7 @@ def parse_webhook_payload():
     # }
 
 def get_ongoing_inspection_statuses():
+    pass
     # from returnOrders coming from previous steps, consider "Returnerad" status as Warehouse OK
     # {
     #     "returnOrderStatuses": [
@@ -265,4 +266,3 @@ def get_ongoing_inspection_statuses():
     #         }
     #     ]
     # }
-    pass

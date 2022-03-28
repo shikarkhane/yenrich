@@ -3,9 +3,8 @@
 # 2. Create a new "return order" and link it to an outbound delivery order.
 #       The latter has api structure for logging return reasons.
 
-from typing import List
-
 from dataclasses import dataclass
+from typing import List
 
 
 @dataclass

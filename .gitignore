@@ -6,3 +6,4 @@ error.log
 venv/
 test.py
 *.pytest_cashe
+.vscode/
