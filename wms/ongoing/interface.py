@@ -25,3 +25,23 @@ class Order:
     warehouse_remark: str
     shipped_on: str
     order_lines: List[OrderDetail]
+
+
+@dataclass
+class OngoingArticle:
+    articleSystemId: int
+    articleNumber: str
+    barCode: str
+
+
+@dataclass
+class OngoingReturnOrderLine:
+    returnOrderLineId: int
+    returnOrderRowNumber: str
+
+
+@dataclass
+class OngoingReturnOrder:
+    returnOrderId: int
+    returnOrderNumber: str
+    returnOrderLine: OngoingReturnOrderLine

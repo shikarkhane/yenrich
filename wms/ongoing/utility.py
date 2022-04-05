@@ -6,17 +6,16 @@ def get_date_obj(dt):
     return parse(dt)
 
 
-def is_successful(response):
-    if isinstance(response, Response):
-        if response and response.status_code == 200:
-            return True
+def is_successful(response: Response):
+    if isinstance(response, Response) and response.status_code == 200:
+        return True
     return False
 
 
-def trim_it(a):
-    if a and isinstance(a, str):
-        return a.strip()
-    return a
+def trim_it(string):
+    if isinstance(string, str):
+        return string.strip()
+    return string
 
 
 def remove_hashtag(ext_order_id: str) -> str:
