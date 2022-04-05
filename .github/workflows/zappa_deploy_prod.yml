@@ -1,0 +1,49 @@
+name: Zappa Deploy Prod
+
+on:
+  push:
+    branches: [ prod ]
+
+jobs:
+  zappa_deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+            python-version: [3.8]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - uses: webfactory/ssh-agent@v0.5.4
+      with:
+        ssh-private-key: ${{ secrets.YMODEL_SSH_PRIVATE_KEY }}
+
+    - name: Install pipenv, libpq, and pandoc
+      run: |
+        sudo apt-get install libpq-dev -y
+        python -m pip install --upgrade pip
+        pip install pipenv
+
+#    - name: Cache pipenv virtualenv
+#      id: cache-pipenv
+#      uses: actions/cache@v1
+#      with:
+#        path: ~/.local/share/virtualenvs
+#        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+
+    - name: Install dependencies
+#      if: steps.cache-pipenv.outputs.cache-hit != 'true'
+      run: pipenv install -r requirements.txt --skip-lock --python 3.8
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-1
+
+    - name: Zappa deploy to prod
+      run: pipenv run zappa update -s github_action_zappa_settings.json prod_ps
