@@ -200,11 +200,11 @@ def push_to_ongoing(sqs_message: dict):
     ongoing_api.create_return_order(ongoing_order.ext_internal_order_id)
 
 
-def consume_return_order_webhook(event: dict):
+def ongoing_return_order_webhook(event: dict):
     process_sqs_messages_return_batch_failures(event, update_inspection_status_for_return_orders)
 
 
-def consume_return_on_delivery_order_webhook(event: dict):
+def ongoing_return_on_delivery_order_webhook(event: dict):
     process_sqs_messages_return_batch_failures(event, update_inspection_status_for_return_on_delivery_orders)
 
 
