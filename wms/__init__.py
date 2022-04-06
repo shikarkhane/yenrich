@@ -22,7 +22,7 @@ db: SQLAlchemy = SQLAlchemy()
 sqs = boto3.client('sqs', region_name='eu-west-1')
 sns = boto3.client('sns', region_name='eu-west-1')
 s3 = boto3.client('s3', region_name='eu-west-1')
-is_production: bool = os.environ.get('env_type') == 'production'
+is_production: bool = os.environ.get('ENV_TYPE') == 'prod'
 
 
 def create_app(test_config=None):
