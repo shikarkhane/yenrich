@@ -46,4 +46,4 @@ jobs:
         aws-region: eu-west-1
 
     - name: Zappa deploy to staging
-      run: pipenv run zappa update -s github_action_zappa_settings.json test_in_prod
+      run: pipenv run zappa deploy -s github_action_zappa_settings.json test_in_prod

@@ -46,4 +46,4 @@ jobs:
         aws-region: eu-west-1
 
     - name: Zappa deploy to demo
-      run: pipenv run zappa update -s github_action_zappa_settings.json demo
+      run: pipenv run zappa deploy -s github_action_zappa_settings.json demo
