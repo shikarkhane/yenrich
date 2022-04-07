@@ -59,7 +59,7 @@ def create_app(test_config=None):
     # apply the blueprints to the app
     from wms import common
     
-    app.register_blueprint(common)
+    app.register_blueprint(common.bp)
 
 
     return app
