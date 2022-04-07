@@ -186,7 +186,7 @@ def get_returned_outgoing_orders(retailer_id: int, from_date: str) -> List[Inspe
         return raw_orders
 
 
-def return_request_queue_listener(event: dict):
+def enrich_return_requests(event: dict):
     process_sqs_messages_return_batch_failures(event, push_to_ongoing)
 
 
