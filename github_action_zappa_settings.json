@@ -66,5 +66,27 @@
                 "sg-0ec6855739030a410"
             ]
         }
+    },
+    "staging": {
+        "app_function": "zrun.app",
+        "project_name": "yenrich",
+        "s3_bucket": "yayloh-zappa-enrich-staging",
+        "manage_roles": false,
+        "role_name": "ZappaLambdaExecution",
+        "aws_region": "eu-west-1",
+        "timeout_seconds": 900,
+        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_yenrich_zappa_settings_staging.json",
+        "environment_variables": {
+            "env_type": "production"
+        },
+        "vpc_config": {
+            "SubnetIds": [
+                "subnet-0878adb75a487a102",
+                "subnet-06e7c8e75f63b0c1b"
+            ],
+            "SecurityGroupIds": [
+                "sg-0ec6855739030a410"
+            ]
+        }
     }
 }
