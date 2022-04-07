@@ -57,35 +57,9 @@ def create_app(test_config=None):
     app.cli.add_command(init_db_command)
 
     # apply the blueprints to the app
-    # from dashboard import common, order, setting, retailer, auth, reason, statistic, communicate, shipmenttracker, \
-    #     lookup, filteraction, emailreport, shippinglabel, tracking_page, integration, write_back, \
-    #     data_protection, billing, feedback, intercom
-    # from dashboard.integration import s3 as s3_integration
-    # from dashboard.auth import shopify, zendesk, gorgias
-    #
-    # app.register_blueprint(common.bp)
-    # app.register_blueprint(order.bp)
-    # app.register_blueprint(retailer.bp)
-    # app.register_blueprint(auth.bp)
-    # app.register_blueprint(reason.bp)
-    # app.register_blueprint(statistic.bp)
-    # app.register_blueprint(communicate.bp)
-    # app.register_blueprint(shipmenttracker.bp)
-    # app.register_blueprint(setting.bp)
-    # app.register_blueprint(lookup.bp)
-    # app.register_blueprint(filteraction.bp)
-    # app.register_blueprint(emailreport.bp)
-    # app.register_blueprint(shippinglabel.bp)
-    # app.register_blueprint(tracking_page.bp)
-    # app.register_blueprint(integration.bp)
-    # app.register_blueprint(write_back.bp)
-    # app.register_blueprint(data_protection.bp)
-    # app.register_blueprint(shopify.bp)
-    # app.register_blueprint(zendesk.bp)
-    # app.register_blueprint(gorgias.bp)
-    # app.register_blueprint(billing.bp)
-    # app.register_blueprint(feedback.bp)
-    # app.register_blueprint(intercom.bp)
+    from wms import common
+    
+    app.register_blueprint(common)
 
 
     return app
