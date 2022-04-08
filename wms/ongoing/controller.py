@@ -59,7 +59,7 @@ class OngoingApi:
             "orderCreatedTimeFrom": from_date,
             "orderCreatedTimeTo": to_date
         }
-
+        logger.info(f"get_outgoing_order_between_dates {params=}")
         return self._make_request("get", self._orders, params=params)
 
     def get_order_by_goods_owner_order_id(self, ext_internal_order_id: str, order_date: datetime) -> Optional[Order]:
@@ -110,11 +110,11 @@ class OngoingApi:
                     "returnOrderRowNumber": "string",
                     "customerOrderLine": {
                         "orderLineId": 0
-                      },
-                      "toBeReturnedNumberOfItems": 0
-                    }
-                  ]
+                    },
+                    "toBeReturnedNumberOfItems": 0
                 }
+            ]
+        }
 
         logger.info(f"create_return_order {payload=}")
         # return self._make_request("put", self._return_order, payload=payload)
