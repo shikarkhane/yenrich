@@ -197,6 +197,7 @@ def push_to_ongoing(sqs_message: dict):
     ongoing_api = OngoingApi(sqs_message['retailer_id'])
     ongoing_order = ongoing_api.get_order_by_goods_owner_order_id(sqs_message['ext_internal_order_id'],
                                                                   sqs_message['order_date'])
+    logger.info(ongoing_order)
     # 2. create an "ongoing return order"
     ongoing_api.create_return_order(ongoing_order.ext_internal_order_id)
 
