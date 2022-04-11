@@ -10,18 +10,7 @@
         "timeout_seconds": 30,
         "environment_variables": {
             "env_type": "dev"
-        },
-        "events": [
-            {
-                "name": "enrich-return-requests",
-                "function": "wms.ongoing.controller.enrich_return_requests",
-                "event_source": {
-                    "arn": "arn:aws:sqs:eu-west-1:549794967357:dev-enrich-return-requests",
-                    "batch_size": 10,
-                    "enabled": true
-                }
-            }
-        ]
+        }
     },
     "dev": {
         "app_function": "zrun.app",
