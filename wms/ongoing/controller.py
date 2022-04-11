@@ -13,7 +13,7 @@ from wms import logger
 from wms.common.constants import YaylohServices, RetailerWarehouseIntegrationType
 from wms.common.utility import process_sqs_messages_return_batch_failures, string_to_base64_string
 from wms.integration.interface import InspectionDetail, Inspection
-from wms.ongoing.interface import Order, OrderDetail, OngoingReturnOrder
+from wms.ongoing.interface import OngoingOrder, OngoingOrderLine, OngoingReturnOrder
 from wms.ongoing.utility import is_successful
 
 
@@ -62,7 +62,7 @@ class OngoingApi:
         logger.info(f"get_outgoing_order_between_dates {params=}")
         return self._make_request("get", self._orders, params=params)
 
-    def get_order_by_goods_owner_order_id(self, ext_internal_order_id: str, order_date: str) -> Optional[Order]:
+    def get_order_by_goods_owner_order_id(self, ext_internal_order_id: str, order_date: str) -> Optional[OngoingOrder]:
         # since Ongoing stores the Shopify Order_id and yayloh has Shopify order_number,
         # we have to search in a date range around order date
         # todo enrich service can call integration to get order object from oms integration
@@ -77,8 +77,9 @@ class OngoingApi:
             for i in response.json():
                 order = i.get("orderInfo")
                 if order.get("goodsOwnerOrderId") == ext_internal_order_id:
-                    order_lines: List[OrderDetail] = [
-                        OrderDetail(
+                    order_lines: List[OngoingOrderLine] = [
+                        OngoingOrderLine(
+                            order_line.get('id'),
                             order_line.get("rowNumber"),
                             order_line['article'].get("articleSystemId"),
                             order_line['article'].get("articleNumber"),
@@ -90,7 +91,7 @@ class OngoingApi:
                         for order_line in i.get("orderLines")]
 
                     return(
-                        Order(
+                        OngoingOrder(
                             order.get("orderId"),
                             order.get("orderNumber"),
                             order.get("goodsOwnerOrderId"),
@@ -101,22 +102,26 @@ class OngoingApi:
                     )
         return None
 
-    def create_return_order(self, order_id: int):
+    def create_return_order(self, ongoing_order: OngoingOrder, return_details: List[dict]):
+        return_order_lines = []
+        for order_line in ongoing_order.order_lines:
+            return_detail = [return_detail for return_detail in return_details if return_detail['ext_order_detail_id'] == order_line.ext_order_detail_id]
+            return_order_lines.append({
+                {
+                    "returnOrderRowNumber": "string",
+                    "customerOrderLine": {
+                        "orderLineId": order_line.id
+                    },
+                    "toBeReturnedNumberOfItems": return_detail[0]['amount'] if return_detail else 0
+                }
+            })
         payload = {
             "goodsOwnerId": self.goods_owner_id,
             "returnOrderNumber": "string",
             "customerOrder": {
-                "orderId": order_id
+                "orderId": ongoing_order.id
             },
-            "returnOrderLines": [
-                {
-                    "returnOrderRowNumber": "string",
-                    "customerOrderLine": {
-                        "orderLineId": 0
-                    },
-                    "toBeReturnedNumberOfItems": 0
-                }
-            ]
+            "returnOrderLines": return_order_lines
         }
 
         logger.info(f"create_return_order {payload=}")
@@ -202,7 +207,7 @@ def push_to_ongoing(sqs_message: dict):
                                                                   sqs_message['order_date'])
     logger.info(ongoing_order)
     # 2. create an "ongoing return order"
-    ongoing_api.create_return_order(ongoing_order.wms_order_id)
+    ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
 
 
 def ongoing_return_order_webhook(event: dict):
