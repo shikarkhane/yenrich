@@ -80,10 +80,10 @@ class OngoingApi:
                     order_lines: List[OrderDetail] = [
                         OrderDetail(
                             order_line.get("rowNumber"),
-                            order_line.get("articleSystemId"),
-                            order_line.get("articleNumber"),
-                            order_line.get("articleName"),
-                            order_line.get("productCode"),
+                            order_line['article'].get("articleSystemId"),
+                            order_line['article'].get("articleNumber"),
+                            order_line['article'].get("articleName"),
+                            order_line['article'].get("productCode"),
                             order_line.get("pickedArticleItems")[0].get("returnDate"),
                             order_line.get("pickedArticleItems")[0].get("returnCause")
                         )
@@ -91,6 +91,7 @@ class OngoingApi:
 
                     return(
                         Order(
+                            order.get("orderId"),
                             order.get("orderNumber"),
                             order.get("goodsOwnerOrderId"),
                             order.get("orderRemark"),
@@ -201,7 +202,7 @@ def push_to_ongoing(sqs_message: dict):
                                                                   sqs_message['order_date'])
     logger.info(ongoing_order)
     # 2. create an "ongoing return order"
-    ongoing_api.create_return_order(ongoing_order.ext_internal_order_id)
+    ongoing_api.create_return_order(ongoing_order.wms_order_id)
 
 
 def ongoing_return_order_webhook(event: dict):

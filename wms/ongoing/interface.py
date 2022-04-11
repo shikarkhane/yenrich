@@ -20,6 +20,7 @@ class OrderDetail:
 
 @dataclass
 class Order:
+    wms_order_id: int
     order_number: str
     ext_internal_order_id: str
     warehouse_remark: str
