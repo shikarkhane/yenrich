@@ -68,8 +68,8 @@ class OngoingApi:
         # todo enrich service can call integration to get order object from oms integration
 
         order_date = datetime.strptime(order_date, '%Y-%m-%d %H:%M:%S')
-        from_date: str = (order_date - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%S%z")
-        to_date: str = (order_date + timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%S%z")
+        from_date: str = (order_date - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%S%z")
+        to_date: str = (order_date + timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%S%z")
 
         response = self.get_outgoing_order_between_dates(from_date, to_date)
         logger.info(f"get_order_by_goods_owner_order_id {response.json()}")
