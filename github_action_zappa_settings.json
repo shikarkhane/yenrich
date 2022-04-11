@@ -44,7 +44,7 @@
         "role_name": "ZappaLambdaExecution",
         "aws_region": "eu-west-1",
         "timeout_seconds": 900,
-        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_yenrich_zappa_settings_prod.json",
+        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_prod.json",
         "environment_variables": {
             "env_type": "production"
         },
@@ -86,7 +86,7 @@
         "role_name": "ZappaLambdaExecution",
         "aws_region": "eu-west-1",
         "timeout_seconds": 900,
-        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_yenrich_zappa_settings_staging.json",
+        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_staging.json",
         "environment_variables": {
             "env_type": "production"
         },
