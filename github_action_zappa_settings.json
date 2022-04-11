@@ -19,7 +19,7 @@
         "manage_roles": false,
         "role_name": "DevZappaLambdaExecution",
         "aws_region": "eu-west-1",
-        "timeout_seconds": 30,
+        "timeout_seconds": 900,
         "remote_env": "s3://dev-yayloh-lambda-env-variable/github_action_enrich_zappa_settings.json",
         "environment_variables": {
             "env_type": "dev"
