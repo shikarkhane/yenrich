@@ -62,13 +62,14 @@ class OngoingApi:
         logger.info(f"get_outgoing_order_between_dates {params=}")
         return self._make_request("get", self._orders, params=params)
 
-    def get_order_by_goods_owner_order_id(self, ext_internal_order_id: str, order_date: datetime) -> Optional[Order]:
+    def get_order_by_goods_owner_order_id(self, ext_internal_order_id: str, order_date: str) -> Optional[Order]:
         # since Ongoing stores the Shopify Order_id and yayloh has Shopify order_number,
         # we have to search in a date range around order date
         # todo enrich service can call integration to get order object from oms integration
 
-        from_date: str = (order_date - timedelta(minutes=5)).strftime("%Y-%m-%d")
-        to_date: str = (order_date + timedelta(minutes=5)).strftime("%Y-%m-%d")
+        order_date = datetime.strptime(order_date, '%Y-%m-%d %H:%M:%S')
+        from_date: str = (order_date - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%S%z")
+        to_date: str = (order_date + timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%S%z")
 
         response = self.get_outgoing_order_between_dates(from_date, to_date)
         logger.info(f"get_order_by_goods_owner_order_id {response.json()}")
