@@ -107,14 +107,12 @@ class OngoingApi:
         for order_line in ongoing_order.order_lines:
             return_detail = [return_detail for return_detail in return_details if return_detail['ext_order_detail_id'] == order_line.ext_order_detail_id]
             return_order_lines.append({
-                {
                     "returnOrderRowNumber": "string",
                     "customerOrderLine": {
                         "orderLineId": order_line.id
                     },
                     "toBeReturnedNumberOfItems": return_detail[0]['amount'] if return_detail else 0
-                }
-            })
+                })
         payload = {
             "goodsOwnerId": self.goods_owner_id,
             "returnOrderNumber": "string",
