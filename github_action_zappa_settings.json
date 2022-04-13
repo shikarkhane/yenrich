@@ -33,6 +33,15 @@
                     "batch_size": 10,
                     "enabled": true
                 }
+            },
+            {
+                "name": "ongoing_return_order_webhook",
+                "function": "wms.ongoing.controller.ongoing_return_order_webhook",
+                "event_source": {
+                    "arn": "arn:aws:sqs:eu-west-1:549794967357:dev-enrich-ongoing-webhook",
+                    "batch_size": 10,
+                    "enabled": true
+                }
             }
         ]
     },
