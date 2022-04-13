@@ -205,7 +205,8 @@ def push_to_ongoing(sqs_message: dict):
                                                                   sqs_message['order_date'])
     logger.info(ongoing_order)
     # 2. create an "ongoing return order"
-    ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
+    resp = ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
+    logger.info(f"create return order resp: {resp.json()}")
 
 
 def ongoing_return_order_webhook(event: dict):
