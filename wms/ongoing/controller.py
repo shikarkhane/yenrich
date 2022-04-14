@@ -18,14 +18,7 @@ from wms.ongoing.interface import OngoingOrder, OngoingOrderLine, OngoingReturnO
 from wms.ongoing.utility import is_successful
 
 class OngoingApi:
-    def __init__(self, retailer_id: int):
-        warehouse_integration = RetailerWarehouseIntegration.get_first(retailer_id=retailer_id,
-                                                                       warehouse_integration_type_id=RetailerWarehouseIntegrationType.ONGOING)
-        ongoing_integration = OngoingIntegration.get(warehouse_integration.id)
-
-        if not ongoing_integration:
-            abort(HTTPStatus.BAD_REQUEST, f"Ongoing integration for {retailer_id=} does not exist!")
-
+    def __init__(self, ongoing_integration: OngoingIntegration):
         self.goods_owner_id: int = ongoing_integration.goods_owner_id
         self.base_url: str = f"https://api.ongoingsystems.se/{ongoing_integration.warehouse_name}/api/v1"
 
@@ -206,13 +199,18 @@ def enrich_return_requests(event: dict):
 def push_to_ongoing(sqs_message: dict):
     # this function will do the following
     # 1. get "ongoing order" object for a yayloh return request
-    ongoing_api = OngoingApi(sqs_message['retailer_id'])
-    ongoing_order = ongoing_api.get_order_by_goods_owner_order_id(sqs_message['ext_internal_order_id'],
-                                                                  sqs_message['order_date'])
-    logger.info(ongoing_order)
-    # 2. create an "ongoing return order"
-    resp = ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
-    logger.info(f"create return order resp: {resp.json()}")
+    warehouse_integration = RetailerWarehouseIntegration.get_first(retailer_id=sqs_message['retailer_id'],
+                                                                       warehouse_integration_type_id=RetailerWarehouseIntegrationType.ONGOING)
+    if warehouse_integration:
+        ongoing_integration = OngoingIntegration.get(warehouse_integration.id)
+        if ongoing_integration:
+            ongoing_api = OngoingApi(ongoing_integration)
+            ongoing_order = ongoing_api.get_order_by_goods_owner_order_id(sqs_message['ext_internal_order_id'],
+                                                                        sqs_message['order_date'])
+            logger.info(ongoing_order)
+            # 2. create an "ongoing return order"
+            resp = ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
+            logger.info(f"create return order resp: {resp.json()}")
 
 
 def ongoing_return_order_webhook(event: dict):
