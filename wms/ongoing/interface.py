@@ -8,8 +8,9 @@ from typing import List
 
 
 @dataclass
-class OrderDetail:
-    ext_internal_order_detail_id: str
+class OngoingOrderLine:
+    id: int
+    ext_order_detail_id: str
     article_id: str
     sku_number: str
     product_name: str
@@ -19,12 +20,13 @@ class OrderDetail:
 
 
 @dataclass
-class Order:
+class OngoingOrder:
+    id: int
     order_number: str
     ext_internal_order_id: str
     warehouse_remark: str
     shipped_on: str
-    order_lines: List[OrderDetail]
+    order_lines: List[OngoingOrderLine]
 
 
 @dataclass
