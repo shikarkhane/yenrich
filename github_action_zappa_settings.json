@@ -10,6 +10,19 @@
         "timeout_seconds": 30,
         "environment_variables": {
             "env_type": "dev"
+        }
+    },
+    "dev": {
+        "app_function": "zrun.app",
+        "project_name": "yenrich",
+        "s3_bucket": "yayloh-zappa-enrich-dev",
+        "manage_roles": false,
+        "role_name": "DevZappaLambdaExecution",
+        "aws_region": "eu-west-1",
+        "timeout_seconds": 900,
+        "remote_env": "s3://dev-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_dev.json",
+        "environment_variables": {
+            "env_type": "dev"
         },
         "events": [
             {
@@ -20,27 +33,12 @@
                     "batch_size": 10,
                     "enabled": true
                 }
-            }
-        ]
-    },
-    "dev": {
-        "app_function": "zrun.app",
-        "project_name": "yenrich",
-        "s3_bucket": "yayloh-zappa-enrich-dev",
-        "manage_roles": false,
-        "role_name": "DevZappaLambdaExecution",
-        "aws_region": "eu-west-1",
-        "timeout_seconds": 30,
-        "remote_env": "s3://dev-yayloh-lambda-env-variable/github_action_enrich_zappa_settings.json",
-        "environment_variables": {
-            "env_type": "dev"
-        },
-        "events": [
+            },
             {
-                "name": "enrich-return-requests",
-                "function": "wms.ongoing.controller.enrich_return_requests",
+                "name": "ongoing_return_order_webhook",
+                "function": "wms.ongoing.controller.ongoing_return_order_webhook",
                 "event_source": {
-                    "arn": "arn:aws:sqs:eu-west-1:549794967357:dev-enrich-return-requests",
+                    "arn": "arn:aws:sqs:eu-west-1:549794967357:dev-enrich-ongoing-webhook",
                     "batch_size": 10,
                     "enabled": true
                 }
@@ -55,7 +53,7 @@
         "role_name": "ZappaLambdaExecution",
         "aws_region": "eu-west-1",
         "timeout_seconds": 900,
-        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_yenrich_zappa_settings_prod.json",
+        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_prod.json",
         "environment_variables": {
             "env_type": "production"
         },
@@ -97,7 +95,7 @@
         "role_name": "ZappaLambdaExecution",
         "aws_region": "eu-west-1",
         "timeout_seconds": 900,
-        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_yenrich_zappa_settings_staging.json",
+        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_staging.json",
         "environment_variables": {
             "env_type": "production"
         },
