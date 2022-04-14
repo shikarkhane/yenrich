@@ -3,6 +3,7 @@ from datetime import timedelta, datetime
 from http import HTTPStatus
 from typing import List
 from typing import Optional
+from prettytable import PrettyTable
 
 import requests
 from requests import Response
