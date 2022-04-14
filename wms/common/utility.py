@@ -17,7 +17,7 @@ def process_sqs_messages_return_batch_failures(event: dict, sqs_processing_func:
     batch_item_failures = []
     for record in event['Records']:
         try:
-            sqs_message: dict = json.loads(record["body"])
+            sqs_message: dict = json.loads(json.loads(record["body"])["detail"]["body"])
             sqs_processing_func(sqs_message)
         except Exception:
             logger.exception(f"Sqs message couldn't be processed: {record['messageId']}")

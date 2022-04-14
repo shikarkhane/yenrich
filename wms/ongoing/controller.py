@@ -3,6 +3,7 @@ from datetime import timedelta, datetime
 from http import HTTPStatus
 from typing import List
 from typing import Optional
+from prettytable import PrettyTable
 
 import requests
 from requests import Response
@@ -13,19 +14,11 @@ from wms import logger
 from wms.common.constants import YaylohServices, RetailerWarehouseIntegrationType
 from wms.common.utility import process_sqs_messages_return_batch_failures, string_to_base64_string
 from wms.integration.interface import InspectionDetail, Inspection
-from wms.ongoing.interface import Order, OrderDetail, OngoingReturnOrder
+from wms.ongoing.interface import OngoingOrder, OngoingOrderLine, OngoingReturnOrder
 from wms.ongoing.utility import is_successful
 
-
 class OngoingApi:
-    def __init__(self, retailer_id: int):
-        warehouse_integration = RetailerWarehouseIntegration.get_first(retailer_id=retailer_id,
-                                                                       warehouse_integration_type_id=RetailerWarehouseIntegrationType.ONGOING)
-        ongoing_integration = OngoingIntegration.get(warehouse_integration.id)
-
-        if not ongoing_integration:
-            abort(HTTPStatus.BAD_REQUEST, f"Ongoing integration for {retailer_id=} does not exist!")
-
+    def __init__(self, ongoing_integration: OngoingIntegration):
         self.goods_owner_id: int = ongoing_integration.goods_owner_id
         self.base_url: str = f"https://api.ongoingsystems.se/{ongoing_integration.warehouse_name}/api/v1"
 
@@ -59,36 +52,40 @@ class OngoingApi:
             "orderCreatedTimeFrom": from_date,
             "orderCreatedTimeTo": to_date
         }
-
+        logger.info(f"get_outgoing_order_between_dates {params=}")
         return self._make_request("get", self._orders, params=params)
 
-    def get_order_by_goods_owner_order_id(self, ext_internal_order_id: str, order_date: datetime) -> Optional[Order]:
+    def get_order_by_goods_owner_order_id(self, ext_internal_order_id: str, order_date: str) -> Optional[OngoingOrder]:
         # since Ongoing stores the Shopify Order_id and yayloh has Shopify order_number,
         # we have to search in a date range around order date
         # todo enrich service can call integration to get order object from oms integration
 
-        from_date: str = (order_date - timedelta(minutes=5)).strftime("%Y-%m-%d")
-        to_date: str = (order_date + timedelta(minutes=5)).strftime("%Y-%m-%d")
+        order_date = datetime.strptime(order_date, '%Y-%m-%d %H:%M:%S')
+        from_date: str = (order_date - timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M:%S%z")
+        to_date: str = (order_date + timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M:%S%z")
 
         response = self.get_outgoing_order_between_dates(from_date, to_date)
+        logger.info(f"get_order_by_goods_owner_order_id {response.json()}")
         if is_successful(response):
             for i in response.json():
                 order = i.get("orderInfo")
                 if order.get("goodsOwnerOrderId") == ext_internal_order_id:
-                    order_lines: List[OrderDetail] = [
-                        OrderDetail(
+                    order_lines: List[OngoingOrderLine] = [
+                        OngoingOrderLine(
+                            order_line.get('id'),
                             order_line.get("rowNumber"),
-                            order_line.get("articleSystemId"),
-                            order_line.get("articleNumber"),
-                            order_line.get("articleName"),
-                            order_line.get("productCode"),
+                            order_line['article'].get("articleSystemId"),
+                            order_line['article'].get("articleNumber"),
+                            order_line['article'].get("articleName"),
+                            order_line['article'].get("productCode"),
                             order_line.get("pickedArticleItems")[0].get("returnDate"),
                             order_line.get("pickedArticleItems")[0].get("returnCause")
                         )
                         for order_line in i.get("orderLines")]
 
                     return(
-                        Order(
+                        OngoingOrder(
+                            order.get("orderId"),
                             order.get("orderNumber"),
                             order.get("goodsOwnerOrderId"),
                             order.get("orderRemark"),
@@ -98,24 +95,33 @@ class OngoingApi:
                     )
         return None
 
-    def create_return_order(self, order_id: int):
+    def create_return_order(self, ongoing_order: OngoingOrder, return_details: List[dict]):
+        return_order_lines = []
+        now = datetime.now().strftime("%Y-%m-%d %H:%M")
+        comment = PrettyTable(['SKU', 'Return Type', 'Return Reason', 'Customer Comment'])
+        for order_line in ongoing_order.order_lines:
+            return_details = [return_detail for return_detail in return_details if return_detail['ext_order_detail_id'] == order_line.ext_order_detail_id]
+            if return_details:
+                return_detail = return_details[0]
+                return_order_lines.append({
+                        "returnOrderRowNumber": f"{order_line.id} - {now}",
+                        "customerOrderLine": {
+                            "orderLineId": order_line.id
+                        },
+                        "toBeReturnedNumberOfItems": return_detail['amount']
+                    })
+                comment.add_row([return_detail['sku_number'], return_detail['return_type'], return_detail['reason'], return_detail['comment']])
         payload = {
             "goodsOwnerId": self.goods_owner_id,
-            "returnOrderNumber": "string",
+            "returnOrderNumber": f"{ongoing_order.id} - {now}",
             "customerOrder": {
-                "orderId": order_id
+                "orderId": ongoing_order.id
             },
-            "returnOrderLines": [
-                {
-                    "returnOrderRowNumber": "string",
-                    "customerOrderLine": {
-                        "orderLineId": 0
-                      },
-                      "toBeReturnedNumberOfItems": 0
-                    }
-                  ]
-                }
+            "returnOrderLines": return_order_lines,
+            "comment": comment
+        }
 
+        logger.info(f"create_return_order {payload=}")
         return self._make_request("put", self._return_order, payload=payload)
 
     def get_return_orders(self, return_order_numbers: List[str]) -> List[dict]:
@@ -193,11 +199,18 @@ def enrich_return_requests(event: dict):
 def push_to_ongoing(sqs_message: dict):
     # this function will do the following
     # 1. get "ongoing order" object for a yayloh return request
-    ongoing_api = OngoingApi(sqs_message['retailer_id'])
-    ongoing_order = ongoing_api.get_order_by_goods_owner_order_id(sqs_message['ext_internal_order_id'],
-                                                                  sqs_message['order_date'])
-    # 2. create an "ongoing return order"
-    ongoing_api.create_return_order(ongoing_order.ext_internal_order_id)
+    warehouse_integration = RetailerWarehouseIntegration.get_first(retailer_id=sqs_message['retailer_id'],
+                                                                       warehouse_integration_type_id=RetailerWarehouseIntegrationType.ONGOING)
+    if warehouse_integration:
+        ongoing_integration = OngoingIntegration.get(warehouse_integration.id)
+        if ongoing_integration:
+            ongoing_api = OngoingApi(ongoing_integration)
+            ongoing_order = ongoing_api.get_order_by_goods_owner_order_id(sqs_message['ext_internal_order_id'],
+                                                                        sqs_message['order_date'])
+            logger.info(ongoing_order)
+            # 2. create an "ongoing return order"
+            resp = ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
+            logger.info(f"create return order resp: {resp.json()}")
 
 
 def ongoing_return_order_webhook(event: dict):
