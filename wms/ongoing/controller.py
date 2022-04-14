@@ -16,7 +16,6 @@ from wms.integration.interface import InspectionDetail, Inspection
 from wms.ongoing.interface import OngoingOrder, OngoingOrderLine, OngoingReturnOrder
 from wms.ongoing.utility import is_successful
 
-
 class OngoingApi:
     def __init__(self, retailer_id: int):
         warehouse_integration = RetailerWarehouseIntegration.get_first(retailer_id=retailer_id,
@@ -104,26 +103,32 @@ class OngoingApi:
 
     def create_return_order(self, ongoing_order: OngoingOrder, return_details: List[dict]):
         return_order_lines = []
+        now = datetime.now().strftime("%Y-%m-%d %H:%M")
+        comment = PrettyTable(['SKU', 'Return Type', 'Return Reason', 'Customer Comment'])
         for order_line in ongoing_order.order_lines:
-            return_detail = [return_detail for return_detail in return_details if return_detail['ext_order_detail_id'] == order_line.ext_order_detail_id]
-            return_order_lines.append({
-                    "returnOrderRowNumber": "string",
-                    "customerOrderLine": {
-                        "orderLineId": order_line.id
-                    },
-                    "toBeReturnedNumberOfItems": return_detail[0]['amount'] if return_detail else 0
-                })
+            return_details = [return_detail for return_detail in return_details if return_detail['ext_order_detail_id'] == order_line.ext_order_detail_id]
+            if return_details:
+                return_detail = return_details[0]
+                return_order_lines.append({
+                        "returnOrderRowNumber": f"{order_line.id} - {now}",
+                        "customerOrderLine": {
+                            "orderLineId": order_line.id
+                        },
+                        "toBeReturnedNumberOfItems": return_detail['amount']
+                    })
+                comment.add_row([return_detail['sku_number'], return_detail['return_type'], return_detail['reason'], return_detail['comment']])
         payload = {
             "goodsOwnerId": self.goods_owner_id,
-            "returnOrderNumber": "string",
+            "returnOrderNumber": f"{ongoing_order.id} - {now}",
             "customerOrder": {
                 "orderId": ongoing_order.id
             },
-            "returnOrderLines": return_order_lines
+            "returnOrderLines": return_order_lines,
+            "comment": comment
         }
 
         logger.info(f"create_return_order {payload=}")
-        return self._make_request("put", self._return_order, payload=payload)
+        # return self._make_request("put", self._return_order, payload=payload)
 
     def get_return_orders(self, return_order_numbers: List[str]) -> List[dict]:
         params = {

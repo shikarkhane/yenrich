@@ -1,6 +1,6 @@
 ## We are using these requirements directly:
 git+https://github.com/shikarkhane/yZappa.git@master#egg=zappa
-git+https://github.com/shikarkhane/ymodel.git@master#egg=ymodel
+git+https://github.com/shikarkhane/ymodel.git@v1.1.2#egg=ymodel
 boto3==1.21.32
 click==8.1.2
 Flask==2.0.3
@@ -11,5 +11,6 @@ mysql-connector-python==8.0.28
 feedparser==6.0.8
 requests==2.27.1
 werkzeug==2.0.3
+prettytable==3.2.0
 pytz==2022.1
 zeep==4.1.0
