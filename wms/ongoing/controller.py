@@ -122,7 +122,7 @@ class OngoingApi:
         }
 
         logger.info(f"create_return_order {payload=}")
-        # return self._make_request("put", self._return_order, payload=payload)
+        return self._make_request("put", self._return_order, payload=payload)
 
     def get_return_orders(self, return_order_numbers: List[str]) -> List[dict]:
         params = {
