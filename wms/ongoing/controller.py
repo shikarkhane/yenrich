@@ -118,7 +118,7 @@ class OngoingApi:
                 "orderId": ongoing_order.id
             },
             "returnOrderLines": return_order_lines,
-            "comment": comment
+            "comment": str(comment)
         }
 
         logger.info(f"create_return_order {payload=}")
