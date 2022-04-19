@@ -8,6 +8,14 @@ from typing import List
 
 
 @dataclass
+class ReturnCause:
+    code: str
+    name: str
+    is_remove_cause: bool
+    is_change_cause: bool
+    is_return_comment_mandatory: bool
+
+@dataclass
 class OngoingOrderLine:
     id: int
     ext_order_detail_id: str
