@@ -167,7 +167,6 @@ class OngoingApi:
             elif req_type == "put":
                 response = requests.put(url, json=payload)
 
-            response.raise_for_status()
             return response
 
         except requests.exceptions.HTTPError as err:
@@ -230,7 +229,9 @@ def push_to_ongoing(sqs_message: dict):
             logger.info(ongoing_order)
             # 2. create an "ongoing return order"
             resp = ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
+            logger(f"{str(resp)}")
             logger.info(f"create return order resp: {resp.json()}")
+            logger(f"{resp.status_code=}")
 
 
 def ongoing_return_order_webhook(event: dict):
