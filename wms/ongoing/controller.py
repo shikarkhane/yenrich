@@ -8,14 +8,16 @@ from prettytable import PrettyTable
 import requests
 from requests import Response
 from werkzeug.exceptions import abort
+from wms.ongoing.constants import YaylohReturnCauses
 from ymodel.integration.warehouse_integration import OngoingIntegration, RetailerWarehouseIntegration
 
 from wms import logger
 from wms.common.constants import YaylohServices, RetailerWarehouseIntegrationType
 from wms.common.utility import process_sqs_messages_return_batch_failures, string_to_base64_string
 from wms.integration.interface import InspectionDetail, Inspection
-from wms.ongoing.interface import OngoingOrder, OngoingOrderLine, OngoingReturnOrder
+from wms.ongoing.interface import OngoingOrder, OngoingOrderLine, OngoingReturnOrder, ReturnCause
 from wms.ongoing.utility import is_successful
+
 
 class OngoingApi:
     def __init__(self, ongoing_integration: OngoingIntegration):
@@ -31,6 +33,7 @@ class OngoingApi:
 
         self._orders: str = f"{self.base_url}/orders"
         self._return_order: str = f"{self.base_url}/returnOrders"
+        self._return_causes: str = f"{self.base_url}/returnOrders/returnCauses"
 
     def get_order(self, order_number: str) -> Response:
         params = {
@@ -38,6 +41,18 @@ class OngoingApi:
             "orderNumber": order_number
         }
         return self._make_request("get", self._orders, params=params)
+
+    def create_return_cause(self, return_cause: ReturnCause):
+        payload = {
+            "goodsOwnerId": self.goods_owner_id,
+            "code": return_cause.code,
+            "name": return_cause.name,
+            "isRemoveCause": return_cause.is_remove_cause,
+            "isChangeCause": return_cause.is_change_cause,
+            "isReturnCommentMandatory": return_cause.is_return_comment_mandatory
+        }
+
+        return self._make_request("put", self._orders, payload=payload)
 
     def get_outgoing_orders_returned_since(self, from_date: str) -> Response:
         params = {
@@ -83,7 +98,7 @@ class OngoingApi:
                         )
                         for order_line in i.get("orderLines")]
 
-                    return(
+                    return (
                         OngoingOrder(
                             order.get("orderId"),
                             order.get("orderNumber"),
@@ -100,17 +115,20 @@ class OngoingApi:
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
         comment = PrettyTable(['SKU', 'Return Type', 'Return Reason', 'Customer Comment'])
         for order_line in ongoing_order.order_lines:
-            return_details = [return_detail for return_detail in return_details if return_detail['ext_order_detail_id'] == order_line.ext_order_detail_id]
+            return_details = [
+                return_detail for return_detail in return_details if
+                return_detail['ext_order_detail_id'] == order_line.ext_order_detail_id]
             if return_details:
                 return_detail = return_details[0]
                 return_order_lines.append({
-                        "returnOrderRowNumber": f"{order_line.id} - {now}",
-                        "customerOrderLine": {
-                            "orderLineId": order_line.id
-                        },
-                        "toBeReturnedNumberOfItems": return_detail['amount']
-                    })
-                comment.add_row([return_detail['sku_number'], return_detail['return_type'], return_detail['reason'], return_detail['comment']])
+                    "returnOrderRowNumber": f"{order_line.id} - {now}",
+                    "customerOrderLine": {
+                        "orderLineId": order_line.id
+                    },
+                    "toBeReturnedNumberOfItems": return_detail['amount']
+                })
+                comment.add_row([return_detail['sku_number'], return_detail['return_type'],
+                                 return_detail['reason'], return_detail['comment']])
         payload = {
             "goodsOwnerId": self.goods_owner_id,
             "returnOrderNumber": f"{ongoing_order.id} - {now}",
@@ -146,6 +164,8 @@ class OngoingApi:
                 response = requests.post(url, headers=self.headers, json=payload)
             elif req_type == "delete":
                 response = requests.delete(url, headers=self.headers)
+            elif req_type == "put":
+                response = requests.put(url, json=payload)
 
             response.raise_for_status()
             return response
@@ -200,13 +220,13 @@ def push_to_ongoing(sqs_message: dict):
     # this function will do the following
     # 1. get "ongoing order" object for a yayloh return request
     warehouse_integration = RetailerWarehouseIntegration.get_first(retailer_id=sqs_message['retailer_id'],
-                                                                       warehouse_integration_type_id=RetailerWarehouseIntegrationType.ONGOING)
+                                                                   warehouse_integration_type_id=RetailerWarehouseIntegrationType.ONGOING)
     if warehouse_integration:
         ongoing_integration = OngoingIntegration.get(warehouse_integration.id)
         if ongoing_integration:
             ongoing_api = OngoingApi(ongoing_integration)
             ongoing_order = ongoing_api.get_order_by_goods_owner_order_id(sqs_message['ext_internal_order_id'],
-                                                                        sqs_message['order_date'])
+                                                                          sqs_message['order_date'])
             logger.info(ongoing_order)
             # 2. create an "ongoing return order"
             resp = ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
@@ -225,6 +245,13 @@ def get_retailer_id_from_goods_owner_id(goods_owner_id: int) -> int:
     ongoing_integration = OngoingIntegration.get_first(goods_owner_id=goods_owner_id)
     warehouse_integration = RetailerWarehouseIntegration.get(ongoing_integration.warehouse_integration_id)
     return warehouse_integration.retailer_id
+
+
+def create_return_causes(retailer_id: int):
+    ongoing_api = OngoingApi(retailer_id)
+
+    for return_cause in YaylohReturnCauses:
+        ongoing_api.create_return_cause(return_cause)
 
 
 def update_inspection_status_for_return_orders(sqs_message: dict):
