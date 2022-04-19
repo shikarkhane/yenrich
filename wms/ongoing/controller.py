@@ -1,20 +1,18 @@
 from dataclasses import asdict
 from datetime import timedelta, datetime
-from http import HTTPStatus
 from typing import List
 from typing import Optional
-from prettytable import PrettyTable
 
 import requests
+from prettytable import PrettyTable
 from requests import Response
-from werkzeug.exceptions import abort
-from wms.ongoing.constants import YaylohReturnCauses
 from ymodel.integration.warehouse_integration import OngoingIntegration, RetailerWarehouseIntegration
 
 from wms import logger
 from wms.common.constants import YaylohServices, RetailerWarehouseIntegrationType
 from wms.common.utility import process_sqs_messages_return_batch_failures, string_to_base64_string
 from wms.integration.interface import InspectionDetail, Inspection
+from wms.ongoing.constants import YaylohReturnCauses
 from wms.ongoing.interface import OngoingOrder, OngoingOrderLine, OngoingReturnOrder, ReturnCause
 from wms.ongoing.utility import is_successful
 
@@ -120,12 +118,17 @@ class OngoingApi:
                 return_detail['ext_order_detail_id'] == order_line.ext_order_detail_id]
             if return_details:
                 return_detail = return_details[0]
+                return_cause: ReturnCause = YaylohReturnCauses[return_detail['return_type'].upper()].value
                 return_order_lines.append({
                     "returnOrderRowNumber": f"{order_line.id} - {now}",
                     "customerOrderLine": {
                         "orderLineId": order_line.id
                     },
-                    "toBeReturnedNumberOfItems": return_detail['amount']
+                    "toBeReturnedNumberOfItems": return_detail['amount'],
+                    "returnCause": {
+                        "code": return_cause.code,
+                        "name": return_cause.name
+                    }
                 })
                 comment.add_row([return_detail['sku_number'], return_detail['return_type'],
                                  return_detail['reason'], return_detail['comment']])
@@ -227,6 +230,11 @@ def push_to_ongoing(sqs_message: dict):
             ongoing_order = ongoing_api.get_order_by_goods_owner_order_id(sqs_message['ext_internal_order_id'],
                                                                           sqs_message['order_date'])
             logger.info(ongoing_order)
+
+            # create return causes
+            for return_cause in YaylohReturnCauses:
+                ongoing_api.create_return_cause(return_cause.value)
+
             # 2. create an "ongoing return order"
             resp = ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
             logger(f"{str(resp)}")
@@ -247,14 +255,6 @@ def get_retailer_id_from_goods_owner_id(goods_owner_id: int) -> int:
     warehouse_integration = RetailerWarehouseIntegration.get(ongoing_integration.warehouse_integration_id)
     return warehouse_integration.retailer_id
 
-
-def create_return_causes(retailer_id: int):
-    ongoing_api = OngoingApi(retailer_id)
-
-    for return_cause in YaylohReturnCauses:
-        ongoing_api.create_return_cause(return_cause)
-
-
 def update_inspection_status_for_return_orders(sqs_message: dict):
     # this function will do the following
     inspection_dict = {}
@@ -265,20 +265,26 @@ def update_inspection_status_for_return_orders(sqs_message: dict):
     customer_order_info: dict = sqs_message['customerOrderInfo']
 
     # 2. get "ongoing return order" and corresponding yayloh order object
-    ongoing_api = OngoingApi(retailer_id)
-    if return_orders := ongoing_api.get_return_orders([return_order.returnOrderNumber]):
-        # 3. get "return order status from ongoing"
-        inspection_details: List[InspectionDetail] = get_ongoing_inspection_statuses(return_orders)
-        inspection: Inspection = Inspection(ext_order_id=customer_order_info['orderNumber'],
-                                            ext_internal_order_id=customer_order_info['orderId'],
-                                            inspected_order_details=inspection_details)
-        inspection_dict = asdict(inspection)
+    warehouse_integration = RetailerWarehouseIntegration.get_first(retailer_id=sqs_message['retailer_id'],
+                                                                   warehouse_integration_type_id=RetailerWarehouseIntegrationType.ONGOING)
+    if warehouse_integration:
+        ongoing_integration = OngoingIntegration.get(warehouse_integration.id)
+        if ongoing_integration:
+            ongoing_api = OngoingApi(ongoing_integration)
+            if return_orders := ongoing_api.get_return_orders([return_order.returnOrderNumber]):
+                # 3. get "return order status from ongoing"
+                inspection_details: List[InspectionDetail] = get_ongoing_inspection_statuses(return_orders)
+                inspection: Inspection = Inspection(ext_order_id=customer_order_info['orderNumber'],
+                                                    ext_internal_order_id=customer_order_info['orderId'],
+                                                    inspected_order_details=inspection_details)
+                inspection_dict = asdict(inspection)
 
-    # 4. Call yayloh to update inspection status
-    response = requests.post(url=f"{YaylohServices.RPLATFORM}/wms/retailer-id/{retailer_id}/order_details/inspected/",
-                             json=inspection_dict)
+            # 4. Call yayloh to update inspection status
+            response = requests.post(
+                url=f"{YaylohServices.RPLATFORM}/wms/retailer-id/{retailer_id}/order_details/inspected/",
+                json=inspection_dict)
 
-    response.raise_for_status()
+            response.raise_for_status()
 
 
 def update_inspection_status_for_return_on_delivery_orders(sqs_message: dict):
