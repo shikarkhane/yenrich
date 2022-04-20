@@ -168,7 +168,7 @@ class OngoingApi:
             elif req_type == "delete":
                 response = requests.delete(url, headers=self.headers)
             elif req_type == "put":
-                response = requests.put(url, json=payload)
+                response = requests.put(url, headers=self.headers, json=payload)
 
             return response
 
