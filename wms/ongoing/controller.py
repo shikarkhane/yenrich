@@ -50,7 +50,7 @@ class OngoingApi:
             "isReturnCommentMandatory": return_cause.is_return_comment_mandatory
         }
 
-        return self._make_request("put", self._orders, payload=payload)
+        return self._make_request("put", self._return_causes, payload=payload)
 
     def get_outgoing_orders_returned_since(self, from_date: str) -> Response:
         params = {
@@ -237,7 +237,6 @@ def push_to_ongoing(sqs_message: dict):
 
             # 2. create an "ongoing return order"
             resp = ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
-            logger(f"{str(resp)}")
             logger.info(f"create return order resp: {resp.json()}")
             logger(f"{resp.status_code=}")
 
