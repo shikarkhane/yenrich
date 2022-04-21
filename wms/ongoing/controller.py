@@ -238,7 +238,6 @@ def push_to_ongoing(sqs_message: dict):
             # 2. create an "ongoing return order"
             resp = ongoing_api.create_return_order(ongoing_order, sqs_message['return_details'])
             logger.info(f"create return order resp: {resp.json()}")
-            logger(f"{resp.status_code=}")
 
 
 def ongoing_return_order_webhook(event: dict):
@@ -253,6 +252,7 @@ def get_retailer_id_from_goods_owner_id(goods_owner_id: int) -> int:
     ongoing_integration = OngoingIntegration.get_first(goods_owner_id=goods_owner_id)
     warehouse_integration = RetailerWarehouseIntegration.get(ongoing_integration.warehouse_integration_id)
     return warehouse_integration.retailer_id
+
 
 def update_inspection_status_for_return_orders(sqs_message: dict):
     # this function will do the following
