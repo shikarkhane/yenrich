@@ -9,7 +9,7 @@ from requests import Response
 from ymodel.integration.warehouse_integration import OngoingIntegration, RetailerWarehouseIntegration
 
 from wms import logger
-from wms.common.constants import YaylohServices, RetailerWarehouseIntegrationType
+from wms.common.constants import YaylohServices, WarehouseIntegrationType
 from wms.common.utility import process_sqs_messages_return_batch_failures, string_to_base64_string
 from wms.integration.interface import InspectionDetail, Inspection
 from wms.ongoing.constants import YaylohReturnCauses
@@ -222,7 +222,7 @@ def push_to_ongoing(sqs_message: dict):
     # this function will do the following
     # 1. get "ongoing order" object for a yayloh return request
     warehouse_integration = RetailerWarehouseIntegration.get_first(retailer_id=sqs_message['retailer_id'],
-                                                                   warehouse_integration_type_id=RetailerWarehouseIntegrationType.ONGOING)
+                                                                   warehouse_integration_type_id=WarehouseIntegrationType.ONGOING)
     if warehouse_integration:
         ongoing_integration = OngoingIntegration.get(warehouse_integration.id)
         if ongoing_integration:
@@ -265,7 +265,7 @@ def update_inspection_status_for_return_orders(sqs_message: dict):
 
     # 2. get "ongoing return order" and corresponding yayloh order object
     warehouse_integration = RetailerWarehouseIntegration.get_first(retailer_id=sqs_message['retailer_id'],
-                                                                   warehouse_integration_type_id=RetailerWarehouseIntegrationType.ONGOING)
+                                                                   warehouse_integration_type_id=WarehouseIntegrationType.ONGOING)
     if warehouse_integration:
         ongoing_integration = OngoingIntegration.get(warehouse_integration.id)
         if ongoing_integration:
