@@ -113,25 +113,25 @@ class OngoingApi:
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
         comment = PrettyTable(['SKU', 'Return Type', 'Return Reason', 'Customer Comment'])
         for order_line in ongoing_order.order_lines:
-            return_details = [
+            order_line_return_detail = [
                 return_detail for return_detail in return_details if
                 return_detail['ext_order_detail_id'] == order_line.ext_order_detail_id]
-            if return_details:
-                return_detail = return_details[0]
-                return_cause: ReturnCause = YaylohReturnCauses[return_detail['return_type'].upper()].value
+            if order_line_return_detail:
+                order_line_return_detail = order_line_return_detail[0]
+                return_cause: ReturnCause = YaylohReturnCauses[order_line_return_detail['return_type'].upper()].value
                 return_order_lines.append({
                     "returnOrderRowNumber": f"{order_line.id} - {now}",
                     "customerOrderLine": {
                         "orderLineId": order_line.id
                     },
-                    "toBeReturnedNumberOfItems": return_detail['amount'],
+                    "toBeReturnedNumberOfItems": order_line_return_detail['amount'],
                     "returnCause": {
                         "code": return_cause.code,
                         "name": return_cause.name
                     }
                 })
-                comment.add_row([return_detail['sku_number'], return_detail['return_type'],
-                                 return_detail['reason'], return_detail['comment']])
+                comment.add_row([order_line_return_detail['sku_number'], order_line_return_detail['return_type'],
+                                 order_line_return_detail['reason'], order_line_return_detail['comment']])
         payload = {
             "goodsOwnerId": self.goods_owner_id,
             "returnOrderNumber": f"{ongoing_order.id} - {now}",
