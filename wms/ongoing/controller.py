@@ -215,6 +215,7 @@ def get_returned_outgoing_orders(retailer_id: int, from_date: str) -> List[Inspe
 
 
 def enrich_return_requests(event: dict):
+    get_app_context()
     process_sqs_messages_return_batch_failures(event, push_to_ongoing)
 
 
@@ -241,10 +242,12 @@ def push_to_ongoing(sqs_message: dict):
 
 
 def ongoing_return_order_webhook(event: dict):
+    get_app_context()
     process_sqs_messages_return_batch_failures(event, update_inspection_status_for_return_orders)
 
 
 def ongoing_return_on_delivery_order_webhook(event: dict):
+    get_app_context()
     process_sqs_messages_return_batch_failures(event, update_inspection_status_for_return_on_delivery_orders)
 
 
