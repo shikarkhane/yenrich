@@ -10,7 +10,7 @@ from ymodel.integration.warehouse_integration import OngoingIntegration, Retaile
 
 from wms import logger
 from wms.common.constants import YaylohServices, WarehouseIntegrationType
-from wms.common.utility import process_sqs_messages_return_batch_failures, string_to_base64_string
+from wms.common.utility import get_app_context, process_sqs_messages_return_batch_failures, string_to_base64_string
 from wms.integration.interface import InspectionDetail, Inspection
 from wms.ongoing.constants import YaylohReturnCauses
 from wms.ongoing.interface import OngoingOrder, OngoingOrderLine, OngoingReturnOrder, ReturnCause
