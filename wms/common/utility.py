@@ -15,7 +15,8 @@ def process_sqs_messages_return_batch_failures(event: dict, sqs_processing_func:
     batch_item_failures = []
     for record in event['Records']:
         try:
-            bride_body = record["body"] if isinstance(bride_body, dict) else json.loads(bride_body)
+            body = record["body"]
+            bride_body = body if isinstance(body, dict) else json.loads(body)
             sqs_message = bride_body["detail"]["body"]
             sqs_processing_func(sqs_message)
         except Exception:
