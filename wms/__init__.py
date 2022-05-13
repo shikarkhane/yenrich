@@ -90,8 +90,6 @@ def create_app_for_triggered_event(test_config=None):
         # load the test config if passed in
         app.config.update(test_config)
 
-    # initialize Flask-SQLAlchemy and the init-db command
-    close_all_sessions()
     db.init_app(app)
 
     return app
