@@ -12,7 +12,6 @@ from flask_sqlalchemy import SQLAlchemy
 __version__ = (1, 0, 0, "dev")
 
 # Log everything, and send it to stderr.
-from sqlalchemy.orm import close_all_sessions
 
 logging.basicConfig(filename="error.log", level=logging.INFO, format='%(asctime)s %(message)s')
 logger = logging.getLogger()
@@ -42,7 +41,8 @@ def create_app(test_config=None):
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev"),
         SQLALCHEMY_DATABASE_URI=db_url,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        SQLALCHEMY_ENGINE_OPTIONS={'pool_recycle': int(os.environ.get('SQLALCHEMY_POOL_RECYCLE', "899"))}
+        SQLALCHEMY_ENGINE_OPTIONS={'pool_recycle': int(os.environ.get('SQLALCHEMY_POOL_RECYCLE', "899")),
+                                   "isolation_level": "READ COMMITTED"}
     )
 
     if test_config is None:
@@ -58,9 +58,8 @@ def create_app(test_config=None):
 
     # apply the blueprints to the app
     from wms import common
-    
-    app.register_blueprint(common.bp)
 
+    app.register_blueprint(common.bp)
 
     return app
 
@@ -81,6 +80,8 @@ def create_app_for_triggered_event(test_config=None):
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev"),
         SQLALCHEMY_DATABASE_URI=db_url,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        SQLALCHEMY_ENGINE_OPTIONS={'pool_recycle': int(os.environ.get('SQLALCHEMY_POOL_RECYCLE', "899")),
+                                   "isolation_level": "READ COMMITTED"}
     )
 
     if test_config is None:
