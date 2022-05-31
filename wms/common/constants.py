@@ -1,7 +1,7 @@
 from os import getenv
 
 
-class RetailerWarehouseIntegrationType:
+class WarehouseIntegrationType:
     ONGOING = 1
 
 

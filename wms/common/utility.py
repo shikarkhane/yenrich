@@ -12,12 +12,13 @@ def get_app_context():
 
 
 def process_sqs_messages_return_batch_failures(event: dict, sqs_processing_func: Callable) -> str:
-    get_app_context()
-
     batch_item_failures = []
     for record in event['Records']:
         try:
-            sqs_message: dict = json.loads(json.loads(record["body"])["detail"]["body"])
+            body = record["body"]
+            bride = body if isinstance(body, dict) else json.loads(body)
+            bride_body = bride["detail"]["body"]
+            sqs_message = bride_body if isinstance(bride_body, dict) else json.loads(bride_body)
             sqs_processing_func(sqs_message)
         except Exception:
             logger.exception(f"Sqs message couldn't be processed: {record['messageId']}")
