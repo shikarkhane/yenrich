@@ -83,7 +83,7 @@ def update_inspection_status_for_return_orders(sqs_message: dict):
 
             if sqs_message["isReturned"]:
                 webhook_order = OngoingWebhookOrder(**sqs_message["order"])
-                ongoing_order = ongoing_api.get_order(webhook_order.orderNumber)
+                ongoing_order = ongoing_api.get_order(webhook_order.orderId)
                 return_order_id = Rplatform.get_ongoing_return_order(
                     retailer_id=retailer_id,
                     ext_internal_order_id=int(ongoing_order.ext_internal_order_id),

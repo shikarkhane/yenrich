@@ -31,10 +31,8 @@ class OngoingApi:
         self._return_order: str = f"{self.base_url}/returnOrders"
         self._return_causes: str = f"{self.base_url}/returnOrders/returnCauses"
 
-    def get_order(self, order_number: str) -> OngoingOrder:
-        params = {"goodsOwnerId": self.goods_owner_id, "orderNumber": order_number}
-
-        resp = self._make_request("get", self._orders, params=params)
+    def get_order(self, order_id: int) -> OngoingOrder:
+        resp = self._make_request("get", f"{self._orders}/{order_id}")
 
         return OngoingOrder(resp.json())
 
