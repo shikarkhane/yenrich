@@ -1,8 +1,3 @@
-# In Ongoing wms, 3PL users can register a return in 2 ways
-# 1. Mark an outbound delivery order in Ongoing system as a return. We will call this class ReturnOnDeliveryOrder
-# 2. Create a new "return order" and link it to an outbound delivery order.
-#       The latter has api structure for logging return reasons.
-
 from dataclasses import dataclass
 from typing import List
 
@@ -15,6 +10,7 @@ class ReturnCause:
     is_change_cause: bool
     is_return_comment_mandatory: bool
 
+
 @dataclass
 class OngoingOrderLine:
     id: int
@@ -26,6 +22,20 @@ class OngoingOrderLine:
     return_date: str
     return_reason: str
 
+    def __init__(self, order_line: dict):
+        self.id = order_line.get("id")
+        self.ext_order_detail_id = order_line.get("rowNumber")
+
+        article = order_line["article"]
+        self.article_id = article.get("articleSystemId")
+        self.sku_number = article.get("articleNumber")
+        self.product_name = article.get("articleName")
+        self.product_code = article.get("productCode")
+
+        picked_article_item = order_line.get("pickedArticleItems")[0]
+        self.return_date = picked_article_item.get("returnDate")
+        self.return_reason = picked_article_item.get("returnCause")
+
 
 @dataclass
 class OngoingOrder:
@@ -36,22 +46,28 @@ class OngoingOrder:
     shipped_on: str
     order_lines: List[OngoingOrderLine]
 
+    def __init__(self, order_details: dict):
+        order = order_details.get("orderInfo")
+
+        self.id = order.get("orderId")
+        self.order_number = order.get("orderNumber")
+        self.ext_internal_order_id = order.get("goodsOwnerOrderId")
+        self.warehouse_remark = order.get("orderRemark")
+        self.shipped_on = order.get("shippedTime")
+        self.order_lines = [
+            OngoingOrderLine(order_line)
+            for order_line in order_details.get("orderLines")
+        ]
+
 
 @dataclass
-class OngoingArticle:
-    articleSystemId: int
-    articleNumber: str
-    barCode: str
+class OngoingWebhookOrderLine:
+    orderLineId: int
+    orderRowNumber: str
 
 
 @dataclass
-class OngoingReturnOrderLine:
-    returnOrderLineId: int
-    returnOrderRowNumber: str
-
-
-@dataclass
-class OngoingReturnOrder:
-    returnOrderId: int
-    returnOrderNumber: str
-    returnOrderLine: OngoingReturnOrderLine
+class OngoingWebhookOrder:
+    orderId: int
+    orderNumber: str
+    orderLine: OngoingWebhookOrderLine

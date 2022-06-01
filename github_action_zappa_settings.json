@@ -1,112 +1,112 @@
 {
-    "demo": {
-        "app_function": "zrun.app",
-        "project_name": "yenrich",
-        "s3_bucket": "yayloh-zappa-enrich-dev",
-        "manage_roles": false,
-        "role_name": "DevZappaLambdaExecution",
-        "aws_region": "eu-west-1",
-        "remote_env": "s3://dev-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_demo.json",
-        "timeout_seconds": 30,
-        "environment_variables": {
-            "env_type": "dev"
-        }
-    },
-    "dev": {
-        "app_function": "zrun.app",
-        "project_name": "yenrich",
-        "s3_bucket": "yayloh-zappa-enrich-dev",
-        "manage_roles": false,
-        "role_name": "DevZappaLambdaExecution",
-        "aws_region": "eu-west-1",
-        "timeout_seconds": 900,
-        "remote_env": "s3://dev-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_dev.json",
-        "environment_variables": {
-            "env_type": "dev"
-        },
-        "events": [
-            {
-                "name": "enrich-return-requests",
-                "function": "wms.ongoing.controller.enrich_return_requests",
-                "event_source": {
-                    "arn": "arn:aws:sqs:eu-west-1:549794967357:dev-enrich-return-requests",
-                    "batch_size": 10,
-                    "enabled": true
-                }
-            },
-            {
-                "name": "ongoing_return_order_webhook",
-                "function": "wms.ongoing.controller.ongoing_return_order_webhook",
-                "event_source": {
-                    "arn": "arn:aws:sqs:eu-west-1:549794967357:dev-enrich-ongoing-webhook",
-                    "batch_size": 10,
-                    "enabled": true
-                }
-            }
-        ]
-    },
-    "prod": {
-        "app_function": "zrun.app",
-        "project_name": "yenrich",
-        "s3_bucket": "yayloh-zappa-enrich-prod",
-        "manage_roles": false,
-        "role_name": "ZappaLambdaExecution",
-        "aws_region": "eu-west-1",
-        "timeout_seconds": 900,
-        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_prod.json",
-        "environment_variables": {
-            "env_type": "production"
-        },
-        "events": [
-            {
-                "name": "enrich_return_requests",
-                "function": "wms.ongoing.controller.enrich_return_requests",
-                "event_source": {
-                    "arn": "arn:aws:sqs:eu-west-1:549794967357:prod-enrich-return-requests",
-                    "batch_size": 10,
-                    "enabled": true
-                }
-            },
-            {
-                "name": "ongoing_return_order_webhook",
-                "function": "wms.ongoing.controller.ongoing_return_order_webhook",
-                "event_source": {
-                    "arn": "arn:aws:sqs:eu-west-1:549794967357:prod-enrich-ongoing-webhook",
-                    "batch_size": 10,
-                    "enabled": true
-                }
-            }
-        ],
-        "vpc_config": {
-            "SubnetIds": [
-                "subnet-0878adb75a487a102",
-                "subnet-06e7c8e75f63b0c1b"
-            ],
-            "SecurityGroupIds": [
-                "sg-0ec6855739030a410"
-            ]
-        }
-    },
-    "staging": {
-        "app_function": "zrun.app",
-        "project_name": "yenrich",
-        "s3_bucket": "yayloh-zappa-enrich-staging",
-        "manage_roles": false,
-        "role_name": "ZappaLambdaExecution",
-        "aws_region": "eu-west-1",
-        "timeout_seconds": 900,
-        "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_staging.json",
-        "environment_variables": {
-            "env_type": "production"
-        },
-        "vpc_config": {
-            "SubnetIds": [
-                "subnet-0878adb75a487a102",
-                "subnet-06e7c8e75f63b0c1b"
-            ],
-            "SecurityGroupIds": [
-                "sg-0ec6855739030a410"
-            ]
-        }
+  "demo": {
+    "app_function": "zrun.app",
+    "project_name": "yenrich",
+    "s3_bucket": "yayloh-zappa-enrich-dev",
+    "manage_roles": false,
+    "role_name": "DevZappaLambdaExecution",
+    "aws_region": "eu-west-1",
+    "remote_env": "s3://dev-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_demo.json",
+    "timeout_seconds": 30,
+    "environment_variables": {
+      "env_type": "dev"
     }
+  },
+  "dev": {
+    "app_function": "zrun.app",
+    "project_name": "yenrich",
+    "s3_bucket": "yayloh-zappa-enrich-dev",
+    "manage_roles": false,
+    "role_name": "DevZappaLambdaExecution",
+    "aws_region": "eu-west-1",
+    "timeout_seconds": 900,
+    "remote_env": "s3://dev-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_dev.json",
+    "environment_variables": {
+      "env_type": "dev"
+    },
+    "events": [
+      {
+        "name": "enrich-return-requests",
+        "function": "wms.ongoing.controller.enrich_return_requests",
+        "event_source": {
+          "arn": "arn:aws:sqs:eu-west-1:549794967357:dev-enrich-return-requests",
+          "batch_size": 10,
+          "enabled": true
+        }
+      },
+      {
+        "name": "ongoing_return_order_webhook",
+        "function": "wms.ongoing.controller.ongoing_return_order_webhook",
+        "event_source": {
+          "arn": "arn:aws:sqs:eu-west-1:549794967357:dev-enrich-ongoing-webhook",
+          "batch_size": 10,
+          "enabled": true
+        }
+      }
+    ]
+  },
+  "prod": {
+    "app_function": "zrun.app",
+    "project_name": "yenrich",
+    "s3_bucket": "yayloh-zappa-enrich-prod",
+    "manage_roles": false,
+    "role_name": "ZappaLambdaExecution",
+    "aws_region": "eu-west-1",
+    "timeout_seconds": 900,
+    "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_prod.json",
+    "environment_variables": {
+      "env_type": "production"
+    },
+    "events": [
+      {
+        "name": "enrich_return_requests",
+        "function": "wms.ongoing.controller.enrich_return_requests",
+        "event_source": {
+          "arn": "arn:aws:sqs:eu-west-1:549794967357:prod-enrich-return-requests",
+          "batch_size": 10,
+          "enabled": true
+        }
+      },
+      {
+        "name": "ongoing_return_order_webhook",
+        "function": "wms.ongoing.controller.ongoing_return_order_webhook",
+        "event_source": {
+          "arn": "arn:aws:sqs:eu-west-1:549794967357:prod-enrich-ongoing-webhook",
+          "batch_size": 10,
+          "enabled": true
+        }
+      }
+    ],
+    "vpc_config": {
+      "SubnetIds": [
+        "subnet-0878adb75a487a102",
+        "subnet-06e7c8e75f63b0c1b"
+      ],
+      "SecurityGroupIds": [
+        "sg-0ec6855739030a410"
+      ]
+    }
+  },
+  "staging": {
+    "app_function": "zrun.app",
+    "project_name": "yenrich",
+    "s3_bucket": "yayloh-zappa-enrich-staging",
+    "manage_roles": false,
+    "role_name": "ZappaLambdaExecution",
+    "aws_region": "eu-west-1",
+    "timeout_seconds": 900,
+    "remote_env": "s3://prod-yayloh-lambda-env-variable/github_action_enrich_zappa_settings_staging.json",
+    "environment_variables": {
+      "env_type": "production"
+    },
+    "vpc_config": {
+      "SubnetIds": [
+        "subnet-0878adb75a487a102",
+        "subnet-06e7c8e75f63b0c1b"
+      ],
+      "SecurityGroupIds": [
+        "sg-0ec6855739030a410"
+      ]
+    }
+  }
 }
