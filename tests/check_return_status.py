@@ -2,8 +2,8 @@ import requests
 
 from wms.common.utility import string_to_base64_string
 
-username = "WSIStiksenYayloh"
-password = "LxAcwM5HyoaZDGEANX4z"
+username = ""
+password = ""
 
 auth_token: str = string_to_base64_string(f"{username}:{password}")
 headers = {"Content-type": "application/json", "Authorization": f"Basic {auth_token}"}
