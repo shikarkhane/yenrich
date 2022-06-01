@@ -33,7 +33,7 @@ class OngoingApi:
 
     def get_order(self, order_id: int) -> OngoingOrder:
         resp = self._make_request("get", f"{self._orders}/{order_id}")
-
+        logger.info(f"get_order {resp.json()=}")
         return OngoingOrder(resp.json())
 
     def get_return_order(self, return_order_id: int):

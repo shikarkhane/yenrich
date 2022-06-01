@@ -63,7 +63,7 @@ class OngoingOrder:
 @dataclass
 class OngoingWebhookOrderLine:
     orderLineId: int
-    orderRowNumber: str
+    rowNumber: str
 
 
 @dataclass

@@ -87,7 +87,7 @@ def update_inspection_status_for_return_orders(sqs_message: dict):
                 return_order_id = Rplatform.get_ongoing_return_order(
                     retailer_id=retailer_id,
                     ext_internal_order_id=int(ongoing_order.ext_internal_order_id),
-                    ext_order_detail_id=int(webhook_order.orderLine.orderRowNumber),
+                    ext_order_detail_id=int(webhook_order.orderLine.rowNumber),
                 )
 
                 if return_order := ongoing_api.get_return_order(return_order_id):
@@ -100,7 +100,7 @@ def update_inspection_status_for_return_orders(sqs_message: dict):
                         comment = comment[comment.find(" ") + 1 :]
                         inspection_details.append(
                             InspectionDetail(
-                                ext_order_detail_id=int(webhook_order.orderLine.orderRowNumber),
+                                ext_order_detail_id=int(webhook_order.orderLine.rowNumber),
                                 inspection_result=inspection_result,
                                 comment=comment,
                             )
