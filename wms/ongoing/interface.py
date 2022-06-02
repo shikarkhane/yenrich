@@ -71,3 +71,6 @@ class OngoingWebhookOrder:
     orderId: int
     orderNumber: str
     orderLine: OngoingWebhookOrderLine
+
+    def __post_init__(self):
+        self.orderLine = OngoingWebhookOrderLine(**self.orderLine)
