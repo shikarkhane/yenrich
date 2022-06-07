@@ -4,7 +4,7 @@ from typing import List
 
 import requests
 
-from wms.integration.interface import InspectionDetail, Inspection
+from wms.integration.interface import Inspection
 
 
 class Rplatform:
@@ -21,7 +21,7 @@ class Rplatform:
             "ext_order_detail_ids": ext_order_detail_ids,
         }
 
-        requests.post(f"{cls.base_url}/return/", json=payload)
+        requests.post(f"{cls.base_url}/ongoing/return/", json=payload)
 
     @classmethod
     def get_ongoing_return_order(cls, retailer_id: int, ext_internal_order_id: int, ext_order_detail_id: int):
@@ -31,7 +31,7 @@ class Rplatform:
             "ext_order_detail_id": ext_order_detail_id,
         }
 
-        resp = requests.get(f"{cls.base_url}/return/", params=params)
+        resp = requests.get(f"{cls.base_url}/ongoing/return/", params=params)
 
         return resp.json()["details"]["ongoing_return_id"]
 
