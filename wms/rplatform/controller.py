@@ -1,6 +1,7 @@
 from dataclasses import asdict
+from http import HTTPStatus
 from os import environ
-from typing import List
+from typing import List, Optional
 
 import requests
 
@@ -24,7 +25,9 @@ class Rplatform:
         requests.post(f"{cls.base_url}/ongoing/return/", json=payload)
 
     @classmethod
-    def get_ongoing_return_order(cls, retailer_id: int, ext_internal_order_id: int, ext_order_detail_id: int):
+    def get_ongoing_return_order(
+        cls, retailer_id: int, ext_internal_order_id: int, ext_order_detail_id: int
+    ) -> Optional[int]:
         params = {
             "retailer_id": retailer_id,
             "ext_internal_order_id": ext_internal_order_id,
@@ -32,6 +35,9 @@ class Rplatform:
         }
 
         resp = requests.get(f"{cls.base_url}/ongoing/return/", params=params)
+
+        if resp.status_code == HTTPStatus.NOT_FOUND:
+            return None
 
         return resp.json()["details"]["ongoing_return_id"]
 
