@@ -40,7 +40,7 @@ class OngoingApi:
         if return_order_id is None:
             return None
 
-        resp = self._make_request("get", f"{self._return_causes}/{return_order_id}")
+        resp = self._make_request("get", f"{self._return_order}/{return_order_id}")
 
         return resp.json()
 
