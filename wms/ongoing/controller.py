@@ -40,25 +40,26 @@ def push_to_ongoing(sqs_message: dict):
             ongoing_order = ongoing_api.get_order_by_goods_owner_order_id(
                 ext_internal_order_id, sqs_message["order_date"]
             )
-            logger.info(ongoing_order)
+            logger.info(f"{ongoing_order=}")
 
-            for return_cause in YaylohReturnCauses:
-                ongoing_api.create_return_cause(return_cause.value)
+            if ongoing_order:
+                for return_cause in YaylohReturnCauses:
+                    ongoing_api.create_return_cause(return_cause.value)
 
-            return_details: List[dict] = sqs_message["return_details"]
-            resp = ongoing_api.create_return_order(ongoing_order, return_details)
-            logger.info(f"create return order resp: {resp.json()}")
+                return_details: List[dict] = sqs_message["return_details"]
+                resp = ongoing_api.create_return_order(ongoing_order, return_details)
+                logger.info(f"create return order resp: {resp.json()}")
 
-            resp.raise_for_status()
+                resp.raise_for_status()
 
-            return_order_id = resp.json()["returnOrderId"]
-            ext_order_detail_ids = [return_detail["ext_order_detail_id"] for return_detail in return_details]
-            Rplatform.create_ongoing_return_order(
-                retailer_id=retailer_id,
-                return_order_id=return_order_id,
-                ext_internal_order_id=ext_internal_order_id,
-                ext_order_detail_ids=ext_order_detail_ids,
-            )
+                return_order_id = resp.json()["returnOrderId"]
+                ext_order_detail_ids = [return_detail["ext_order_detail_id"] for return_detail in return_details]
+                Rplatform.create_ongoing_return_order(
+                    retailer_id=retailer_id,
+                    return_order_id=return_order_id,
+                    ext_internal_order_id=ext_internal_order_id,
+                    ext_order_detail_ids=ext_order_detail_ids,
+                )
 
 
 def ongoing_return_order_webhook(event: dict):
@@ -96,8 +97,7 @@ def update_inspection_status_for_return_orders(sqs_message: dict):
                         inspection_result = (
                             "OK" if return_order_line["returnedRemovedByInventoryNumberOfItems"] == 0 else "NOT OK"
                         )
-                        comment = return_order["returnOrderInfo"]["comment"]
-                        comment = comment[comment.find(" ") + 1 :]
+                        comment = ongoing_order.warehouse_remark[ongoing_order.warehouse_remark.find(" ") + 1 :]
                         inspection_details.append(
                             InspectionDetail(
                                 ext_order_detail_id=int(webhook_order.orderLine.rowNumber),
