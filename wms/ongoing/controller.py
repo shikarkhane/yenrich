@@ -60,6 +60,8 @@ def push_to_ongoing(sqs_message: dict):
                     ext_internal_order_id=ext_internal_order_id,
                     ext_order_detail_ids=ext_order_detail_ids,
                 )
+            else:
+                logger.warning(f"Ongoing order not found for {sqs_message['ext_internal_order_id']=}")
 
 
 def ongoing_return_order_webhook(event: dict):
