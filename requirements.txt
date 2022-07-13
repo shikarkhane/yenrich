@@ -1,6 +1,6 @@
 ## We are using these requirements directly:
 git+https://github.com/shikarkhane/yZappa.git@master#egg=zappa
-git+https://github.com/shikarkhane/ymodel.git@v1.7.1#egg=ymodel
+git+https://github.com/shikarkhane/ymodel.git@v1.8.0#egg=ymodel
 boto3==1.21.32
 click==8.1.2
 Flask==2.0.3
