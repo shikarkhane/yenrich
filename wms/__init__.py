@@ -80,7 +80,7 @@ def create_app_for_triggered_event(test_config=None):
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev"),
         SQLALCHEMY_DATABASE_URI=db_url,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        SQLALCHEMY_ENGINE_OPTIONS={'pool_recycle': int(os.environ.get('SQLALCHEMY_POOL_RECYCLE', "899")),
+        SQLALCHEMY_ENGINE_OPTIONS={'pool_recycle': int(os.environ.get('SQLALCHEMY_POOL_RECYCLE', "850")),
                                    "isolation_level": "READ COMMITTED"}
     )
 
