@@ -87,30 +87,31 @@ def update_inspection_status_for_return_orders(sqs_message: dict):
             if sqs_message["isReturned"]:
                 webhook_order = OngoingWebhookOrder(**sqs_message["order"])
                 ongoing_order = ongoing_api.get_order(webhook_order.orderId)
-                return_order_id = Rplatform.get_ongoing_return_order(
-                    retailer_id=retailer_id,
-                    ext_internal_order_id=int(ongoing_order.ext_internal_order_id),
-                    ext_order_detail_id=int(webhook_order.orderLine.rowNumber),
-                )
-
-                if return_order := ongoing_api.get_return_order(return_order_id):
-                    inspection_details: List[InspectionDetail] = []
-                    for return_order_line in return_order["returnOrderLines"]:
-                        inspection_result = (
-                            "OK" if return_order_line["returnedRemovedByInventoryNumberOfItems"] == 0 else "NOT OK"
-                        )
-                        comment = ongoing_order.warehouse_remark[ongoing_order.warehouse_remark.find(" ") + 1 :]
-                        inspection_details.append(
-                            InspectionDetail(
-                                ext_order_detail_id=int(webhook_order.orderLine.rowNumber),
-                                inspection_result=inspection_result,
-                                comment=comment,
-                            )
-                        )
-
-                    inspection: Inspection = Inspection(
+                if ongoing_order.ext_internal_order_id and webhook_order.orderLine.rowNumber:
+                    return_order_id = Rplatform.get_ongoing_return_order(
+                        retailer_id=retailer_id,
                         ext_internal_order_id=int(ongoing_order.ext_internal_order_id),
-                        inspected_order_details=inspection_details,
+                        ext_order_detail_id=int(webhook_order.orderLine.rowNumber),
                     )
 
-                    Rplatform.update_inspection_status(retailer_id=retailer_id, inspection=inspection)
+                    if return_order := ongoing_api.get_return_order(return_order_id):
+                        inspection_details: List[InspectionDetail] = []
+                        for return_order_line in return_order["returnOrderLines"]:
+                            inspection_result = (
+                                "OK" if return_order_line["returnedRemovedByInventoryNumberOfItems"] == 0 else "NOT OK"
+                            )
+                            comment = ongoing_order.warehouse_remark[ongoing_order.warehouse_remark.find(" ") + 1 :]
+                            inspection_details.append(
+                                InspectionDetail(
+                                    ext_order_detail_id=int(webhook_order.orderLine.rowNumber),
+                                    inspection_result=inspection_result,
+                                    comment=comment,
+                                )
+                            )
+
+                        inspection: Inspection = Inspection(
+                            ext_internal_order_id=int(ongoing_order.ext_internal_order_id),
+                            inspected_order_details=inspection_details,
+                        )
+
+                        Rplatform.update_inspection_status(retailer_id=retailer_id, inspection=inspection)
