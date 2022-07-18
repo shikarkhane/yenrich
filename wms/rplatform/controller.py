@@ -13,7 +13,7 @@ class Rplatform:
 
     @classmethod
     def create_ongoing_return_order(
-        cls, retailer_id: int, return_order_id: int, ext_internal_order_id: str, ext_order_detail_ids: List[int]
+            cls, retailer_id: int, return_order_id: int, ext_internal_order_id: str, ext_order_detail_ids: List[int]
     ):
         payload = {
             "retailer_id": retailer_id,
@@ -26,7 +26,7 @@ class Rplatform:
 
     @classmethod
     def get_ongoing_return_order(
-        cls, retailer_id: int, ext_internal_order_id: int, ext_order_detail_id: int
+            cls, retailer_id: int, ext_internal_order_id: int, ext_order_detail_id: int
     ) -> Optional[int]:
         params = {
             "retailer_id": retailer_id,
@@ -43,7 +43,6 @@ class Rplatform:
 
     @classmethod
     def update_inspection_status(cls, retailer_id: int, inspection: Inspection):
-
         inspection_dict = asdict(inspection)
 
         response = requests.post(

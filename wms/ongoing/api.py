@@ -57,7 +57,7 @@ class OngoingApi:
         return self._make_request("put", self._return_causes, payload=payload)
 
     def get_outgoing_order_between_dates(
-        self, from_date: str, to_date: str
+            self, from_date: str, to_date: str
     ) -> Response:
         params = {
             "goodsOwnerId": self.goods_owner_id,
@@ -68,7 +68,7 @@ class OngoingApi:
         return self._make_request("get", self._orders, params=params)
 
     def get_order_by_goods_owner_order_id(
-        self, ext_internal_order_id: str, order_date: str
+            self, ext_internal_order_id: str, order_date: str
     ) -> Optional[OngoingOrder]:
         # since Ongoing stores the Shopify Order_id and yayloh has Shopify order_number,
         # we have to search in a date range around order date
@@ -94,7 +94,7 @@ class OngoingApi:
         return None
 
     def create_return_order(
-        self, ongoing_order: OngoingOrder, return_details: List[dict]
+            self, ongoing_order: OngoingOrder, return_details: List[dict]
     ):
         return_order_lines = []
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -106,7 +106,7 @@ class OngoingApi:
                 return_detail
                 for return_detail in return_details
                 if return_detail["ext_order_detail_id"]
-                == order_line.ext_order_detail_id
+                   == order_line.ext_order_detail_id
             ]
             if order_line_return_detail:
                 order_line_return_detail = order_line_return_detail[0]
@@ -144,7 +144,7 @@ class OngoingApi:
         return self._make_request("put", self._return_order, payload=payload)
 
     def _make_request(
-        self, req_type: str, url: str, params: dict = None, payload: dict = None
+            self, req_type: str, url: str, params: dict = None, payload: dict = None
     ) -> Response:
         response: Response = Response()
         response.headers = {}

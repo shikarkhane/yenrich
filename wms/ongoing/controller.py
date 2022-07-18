@@ -79,7 +79,7 @@ def update_inspection_status_for_return_orders(sqs_message: dict):
     retailer_id = get_retailer_id_from_goods_owner_id(sqs_message["goodsOwnerId"])
 
     if warehouse_integration := RetailerWarehouseIntegration.get_first(
-        retailer_id=retailer_id, warehouse_integration_type_id=WarehouseIntegrationType.ONGOING
+            retailer_id=retailer_id, warehouse_integration_type_id=WarehouseIntegrationType.ONGOING
     ):
         if ongoing_integration := OngoingIntegration.get(warehouse_integration.id):
             ongoing_api = OngoingApi(ongoing_integration)
@@ -100,7 +100,7 @@ def update_inspection_status_for_return_orders(sqs_message: dict):
                             inspection_result = (
                                 "OK" if return_order_line["returnedRemovedByInventoryNumberOfItems"] == 0 else "NOT OK"
                             )
-                            comment = ongoing_order.warehouse_remark[ongoing_order.warehouse_remark.find(" ") + 1 :]
+                            comment = ongoing_order.warehouse_remark[ongoing_order.warehouse_remark.find(" ") + 1:]
                             inspection_details.append(
                                 InspectionDetail(
                                     ext_order_detail_id=int(webhook_order.orderLine.rowNumber),

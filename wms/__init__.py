@@ -3,7 +3,6 @@ import os
 
 import boto3
 import click
-
 from flask import Flask
 from flask.cli import with_appcontext
 from flask_cors import CORS
