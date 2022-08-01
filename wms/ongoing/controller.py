@@ -16,6 +16,7 @@ from wms.ongoing.api import OngoingApi
 from wms.ongoing.constants import YaylohReturnCauses
 from wms.ongoing.interface import (
     OngoingWebhookOrder,
+    OngoingOrder,
 )
 from wms.rplatform.controller import Rplatform
 
@@ -76,10 +77,11 @@ def get_retailer_id_from_goods_owner_id(goods_owner_id: int) -> int:
 
 
 def update_inspection_status_for_return_orders(sqs_message: dict):
-    retailer_id = get_retailer_id_from_goods_owner_id(sqs_message["goodsOwnerId"])
+    goods_owner_id: int = sqs_message["goodsOwnerId"]
+    retailer_id = get_retailer_id_from_goods_owner_id(goods_owner_id)
 
     if warehouse_integration := RetailerWarehouseIntegration.get_first(
-            retailer_id=retailer_id, warehouse_integration_type_id=WarehouseIntegrationType.ONGOING
+        retailer_id=retailer_id, warehouse_integration_type_id=WarehouseIntegrationType.ONGOING
     ):
         if ongoing_integration := OngoingIntegration.get(warehouse_integration.id):
             ongoing_api = OngoingApi(ongoing_integration)
@@ -88,30 +90,51 @@ def update_inspection_status_for_return_orders(sqs_message: dict):
                 webhook_order = OngoingWebhookOrder(**sqs_message["order"])
                 ongoing_order = ongoing_api.get_order(webhook_order.orderId)
                 if ongoing_order.ext_internal_order_id and webhook_order.orderLine.rowNumber:
+                    retailer_id = get_retailer_id_for_order_id(
+                        retailer_id, goods_owner_id, ongoing_order.ext_internal_order_id
+                    )
                     return_order_id = Rplatform.get_ongoing_return_order(
                         retailer_id=retailer_id,
-                        ext_internal_order_id=int(ongoing_order.ext_internal_order_id),
+                        ext_internal_order_id=ongoing_order.ext_internal_order_id,
                         ext_order_detail_id=int(webhook_order.orderLine.rowNumber),
                     )
 
                     if return_order := ongoing_api.get_return_order(return_order_id):
-                        inspection_details: List[InspectionDetail] = []
-                        for return_order_line in return_order["returnOrderLines"]:
-                            inspection_result = (
-                                "OK" if return_order_line["returnedRemovedByInventoryNumberOfItems"] == 0 else "NOT OK"
-                            )
-                            comment = ongoing_order.warehouse_remark[ongoing_order.warehouse_remark.find(" ") + 1:]
-                            inspection_details.append(
-                                InspectionDetail(
-                                    ext_order_detail_id=int(webhook_order.orderLine.rowNumber),
-                                    inspection_result=inspection_result,
-                                    comment=comment,
-                                )
-                            )
+                        update_inspection_details(retailer_id, ongoing_order, return_order, webhook_order)
 
-                        inspection: Inspection = Inspection(
-                            ext_internal_order_id=int(ongoing_order.ext_internal_order_id),
-                            inspected_order_details=inspection_details,
-                        )
 
-                        Rplatform.update_inspection_status(retailer_id=retailer_id, inspection=inspection)
+def get_retailer_id_for_order_id(retailer_id: int, goods_owner_id: int, ext_internal_order_id: str) -> int:
+    ongoing_integrations = OngoingIntegration.get_all(goods_owner_id=goods_owner_id)
+    if len(ongoing_integrations) > 1:
+        retailer_ids: List[int] = [
+            RetailerWarehouseIntegration.get(ongoing_integration.warehouse_integration_id).retailer_id
+            for ongoing_integration in ongoing_integrations
+        ]
+
+        retailer_id = Rplatform.get_retailer_id_for_order_id(
+                        retailer_ids=retailer_ids,
+                        ext_internal_order_id=int(ext_internal_order_id)
+                    )
+
+    return retailer_id
+
+
+def update_inspection_details(
+    retailer_id: int, ongoing_order: OngoingOrder, return_order: dict, webhook_order: OngoingWebhookOrder
+):
+    inspection_details: List[InspectionDetail] = []
+    for return_order_line in return_order["returnOrderLines"]:
+        inspection_result = "OK" if return_order_line["returnedRemovedByInventoryNumberOfItems"] == 0 else "NOT OK"
+        comment = ongoing_order.warehouse_remark[ongoing_order.warehouse_remark.find(" ") + 1 :]
+        inspection_details.append(
+            InspectionDetail(
+                ext_order_detail_id=int(webhook_order.orderLine.rowNumber),
+                inspection_result=inspection_result,
+                comment=comment,
+            )
+        )
+    inspection: Inspection = Inspection(
+        ext_internal_order_id=int(ongoing_order.ext_internal_order_id),
+        inspected_order_details=inspection_details,
+    )
+    Rplatform.update_inspection_status(retailer_id=retailer_id, inspection=inspection)

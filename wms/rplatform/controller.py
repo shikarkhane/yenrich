@@ -26,7 +26,7 @@ class Rplatform:
 
     @classmethod
     def get_ongoing_return_order(
-            cls, retailer_id: int, ext_internal_order_id: int, ext_order_detail_id: int
+            cls, retailer_id: int, ext_internal_order_id: str, ext_order_detail_id: int
     ) -> Optional[int]:
         params = {
             "retailer_id": retailer_id,
@@ -51,3 +51,13 @@ class Rplatform:
         )
 
         response.raise_for_status()
+
+    @classmethod
+    def get_retailer_id_for_order_id(cls, retailer_ids: List[int], ext_internal_order_id: int) -> int:
+        params = {"retailer_ids": str(retailer_ids), "ext_internal_order_id": ext_internal_order_id}
+
+        response = requests.get(url=f"{cls.base_url}/ongoing/retailer/", params=params)
+
+        response.raise_for_status()
+
+        return response.json()["details"]["retailer_id"]
