@@ -24,6 +24,8 @@ def after_request(response: Response):
     except Exception:
         pass
 
+    return response
+
 
 if __name__ == "__main__":
     app.run()
